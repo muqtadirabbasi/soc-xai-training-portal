@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOC Analyst XAI Training & Triage Portal</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="badge">SOC XAI PORTAL</span>
+      <h1>Insider Threat Anomaly Triage — Training & Calibration</h1>
+    </div>
+    <div class="controls">
+      <label for="designSelect">Explanation View:</label>
+      <select id="designSelect">
+        <option value="side_by_side">Side-by-Side (Design A + Design B)</option>
+        <option value="design_A">Design A Only (Statistical Z-Score Deviation)</option>
+        <option value="design_B">Design B Only (SHAP Feature Attribution)</option>
+      </select>
+
+      <label for="scenarioFilter">Scenario Filter:</label>
+      <select id="scenarioFilter">
+        <option value="ALL">All Scenarios</option>
+        <option value="S1">S1 (FZG0389)</option>
+        <option value="S2">S2 (TRC1838)</option>
+        <option value="S3">S3 (CWW1120)</option>
+        <option value="S4">S4 (ASH0298)</option>
+        <option value="BENIGN">Benign Control</option>
+      </select>
+
+      <button id="exportCsvBtn" class="btn secondary">Export Session Log (CSV)</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Participant / Session Setup Banner -->
+    <section id="introCard" class="card intro-card">
+      <h2>Analyst Calibration & Training Module</h2>
+      <p>
+        Review daily behavioral telemetry flagged by an unsupervised Bidirectional LSTM Autoencoder.
+        Each case displays statistical baseline deviations (<strong>Design A</strong>) and/or local surrogate
+        feature attributions (<strong>Design B</strong>). Assess whether each daily activity profile warrants
+        escalation, provide your confidence rating, and inspect immediate ground-truth feedback.
+      </p>
+      <div class="participant-row">
+        <input type="text" id="participantId" placeholder="Enter Participant / Analyst ID (e.g., P01)" />
+        <button id="startBtn" class="btn primary">Start Training Session</button>
+      </div>
+    </section>
+
+    <!-- Active Triage Workspace -->
+    <section id="workspace" class="hidden">
+      <div class="status-bar card">
+        <div><strong>Progress:</strong> <span id="progressText">1 / 1</span></div>
+        <div><strong>Trial ID:</strong> <span id="trialIdText">—</span></div>
+        <div><strong>User / Scenario:</strong> <span id="userText">—</span></div>
+        <div><strong>Date:</strong> <span id="dateText">—</span></div>
+        <div>
+          <strong>Reconstruction Score:</strong> <span id="scoreText">—</span>
+          <span class="muted">(MAD Cutoff: <span id="threshText">—</span>)</span>
+        </div>
+        <div><strong>Session Accuracy:</strong> <span id="accuracyText">0%</span></div>
+      </div>
+
+      <!-- Stimulus Visualizations -->
+      <div id="visualGrid" class="visual-grid two-col">
+        <div id="panelA" class="card plot-card">
+          <div class="plot-header">
+            <h3>Design A — Standardized Baseline Deviation (Z-Score)</h3>
+            <button class="btn small" onclick="openZoom('imgA')">Zoom</button>
+          </div>
+          <div class="img-wrapper">
+            <img id="imgA" src="" alt="Design A Z-Score Plot" />
+          </div>
+        </div>
+
+        <div id="panelB" class="card plot-card">
+          <div class="plot-header">
+            <h3>Design B — SHAP Feature Attribution Waterfall</h3>
+            <button class="btn small" onclick="openZoom('imgB')">Zoom</button>
+          </div>
+          <div class="img-wrapper">
+            <img id="imgB" src="" alt="Design B SHAP Plot" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Analyst Triage Response Panel -->
+      <section class="card decision-card">
+        <h3>Analyst Triage Decision</h3>
+        <div class="decision-grid">
+          <div class="field-group">
+            <label>1. Classification Decision:</label>
+            <div class="radio-row">
+              <label class="radio-pill">
+                <input type="radio" name="decision" value="THREAT" />
+                Escalate as Insider Threat / Anomaly
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="decision" value="BENIGN" />
+                Dismiss as Benign / Normal Behavior
+              </label>
+              <label class="radio-pill muted-pill">
+                <input type="radio" name="decision" value="PREFER_NOT_TO_ANSWER" />
+                Prefer not to answer
+              </label>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="confidenceRange">
+              2. Decision Confidence: <strong id="confidenceVal">50%</strong>
+            </label>
+            <input type="range" id="confidenceRange" min="0" max="100" step="5" value="50" />
+          </div>
+
+          <div class="field-group">
+            <label for="primaryCue">3. Primary Behavioral Indicator Observed:</label>
+            <select id="primaryCue">
+              <option value="">-- Select primary indicator --</option>
+              <option value="removable_media">Thumb Drive / Removable Media Activity</option>
+              <option value="wikileaks_exfil">WikiLeaks / Unauthorized External Web Access</option>
+              <option value="job_competitor">Job Search / Competitor Email Communication</option>
+              <option value="after_hours_login">After-Hours / Unauthorized PC Logon</option>
+              <option value="file_decoy">Decoy / Sensitive File Access or Search</option>
+              <option value="normal_variance">Routine Day-to-Day Workload Variance</option>
+              <option value="prefer_not_to_answer">Prefer not to answer</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button id="submitDecisionBtn" class="btn primary">Submit & Check Ground Truth</button>
+          <button id="prevBtn" class="btn secondary">← Previous</button>
+          <button id="nextBtn" class="btn secondary">Next Case →</button>
+        </div>
+
+        <!-- Immediate Training Feedback Box -->
+        <div id="feedbackBox" class="feedback-box hidden"></div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Full-Resolution Image Lightbox -->
+  <div id="lightbox" class="lightbox hidden" onclick="closeZoom()">
+    <span class="close-btn">&times;</span>
+    <img id="lightboxImg" src="" alt="Zoomed Explanation Plot" />
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
