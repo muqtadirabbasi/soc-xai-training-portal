@@ -1,0 +1,18 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/data/*", "*.css", "*.js", "*.png", "*.json"]
+  },
+  "routes": [
+    {
+      "route": "/data/testing_manifest.json",
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
+    }
+  ],
+  "mimeTypes": {
+    ".json": "application/json",
+    ".png": "image/png"
+  }
+}
