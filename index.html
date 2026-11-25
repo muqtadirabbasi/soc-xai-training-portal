@@ -340,9 +340,11 @@
             <button class="btn small" onclick="openZoom('imgB')">Zoom</button>
           </div>
           <div class="muted" style="margin-bottom: 10px; font-size: 0.82rem; line-height: 1.4;">
-            <strong>SHAP Attribution Guide:</strong>
-            <span style="color:#fca5a5;">Red (+SHAP)</span> pushes the surrogate prediction toward <em>Threat/Anomaly</em>;
-            <span style="color:#93c5fd;">Blue (&minus;SHAP)</span> pushes toward <em>Benign/Normal</em> relative to expected baseline <code>E[f(X)]</code>.
+            <strong>SHAP Conservation Rule &mdash; <code>f(x) = E[f(X)] + &Sigma; &phi;<sub>j</sub></code>:</strong>
+            Start at expected baseline <code>E[f(X)]</code> (bottom) and sum all feature arrows to reach final surrogate threat probability <code>f(x)</code> (top).
+            <span style="color:#fca5a5;">Red (+&phi;)</span> pushes toward <em>Threat</em>;
+            <span style="color:#93c5fd;">Blue (&minus;&phi;)</span> pushes toward <em>Benign</em>.
+            Values of <code>f(x) &ge; 0.50</code> indicate a flagged anomaly.
           </div>
           <div class="img-wrapper">
             <img id="imgB" src="" alt="Design B SHAP Plot" />
