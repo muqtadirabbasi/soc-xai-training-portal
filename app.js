@@ -3,7 +3,7 @@ let filteredTrials = [];
 let currentIndex = 0;
 let trialStartTime = Date.now();
 let beeswarmOpenedCount = 0;
-let playbookOpenedCount = 0;
+let playbookTabClicks = 0;
 const sessionLog = [];
 
 const OUTCOME_DESCRIPTIONS = {
@@ -13,14 +13,134 @@ const OUTCOME_DESCRIPTIONS = {
   TN: "True Negative (TN): Normal benign workday accurately below the MAD anomaly threshold."
 };
 
-const SCENARIO_REFERENCE = {
-  S1: "Scenario 1 (WikiLeaks Exfiltration): Primary = WikiLeaks access + removable drive usage; Secondary = after-hours logons & sudden departure.",
-  S2: "Scenario 2 (Pre-Departure IP Theft): Primary = elevated thumb drive usage + job site / competitor email; Secondary = sudden departure.",
-  S3: "Scenario 3 (Keylogger / Sabotage): Primary = keylogger download + mass email (>=5 recipients); Secondary = thumb drive transfer, unauthorized PC login & sudden departure.",
-  S4: "Scenario 4 (Lateral Snooping & Home Email): Primary = unauthorized PC logon + home email; Secondary = sensitive/decoy file search.",
-  MIXED: "Mixed Mode: Co-occurrence of indicators spanning multiple insider threat scenarios within the same timeline.",
-  BENIGN: "Benign Control / Benign Anomaly: Routine or elevated workload/timing variance with no malicious exfiltration or policy violation."
+const SCENARIO_PLAYBOOK = {
+  S1: {
+    title: "Scenario 1: WikiLeaks Exfiltration",
+    tagClass: "threat",
+    tagLabel: "Insider Threat — S1",
+    description:
+      "A user who did not previously use removable drives or work after hours suddenly begins logging in after hours, using a removable thumb drive, and uploading sensitive data to <code>wikileaks.org</code>, leaving the organization shortly thereafter.",
+    primary: [
+      "<strong>WikiLeaks Access Count</strong> (<code>val &ge; 1</code>, zero baseline)",
+      "<strong>Thumb Drive / Removable Media Usage</strong>"
+    ],
+    secondary: [
+      "After-hours activity (Evening / Night / Weekend)",
+      "<strong>Sudden Departure Flag</strong>"
+    ]
+  },
+  S2: {
+    title: "Scenario 2: Pre-Departure IP Theft",
+    tagClass: "threat",
+    tagLabel: "Insider Threat — S2",
+    description:
+      "A user begins surfing external job websites and soliciting employment from a competitor. Before leaving the company, they use a thumb drive at markedly higher rates than their baseline to steal proprietary data.",
+    primary: [
+      "<strong>Thumb Drive Usage Count</strong> (sharp spike above baseline)",
+      "<strong>Job Site Access / Competitor Email Count</strong>"
+    ],
+    secondary: [
+      "<strong>Sudden Departure Flag</strong>",
+      "Elevated <code>File</code> / <code>Http</code> activity transitions"
+    ]
+  },
+  S3: {
+    title: "Scenario 3: Keylogger & Sabotage",
+    tagClass: "threat",
+    tagLabel: "Insider Threat — S3",
+    description:
+      "A disgruntled system administrator downloads a keylogger and uses a thumb drive to transfer it to their supervisor's machine. The next day, they use the collected credentials to log in as the supervisor and send out an alarming mass email causing organization-wide panic before leaving immediately.",
+    primary: [
+      "<strong>Keylogger Download Count</strong>",
+      "<strong>Mass Email Count</strong> (&ge; 5 recipients)"
+    ],
+    secondary: [
+      "<strong>Thumb Drive Usage Count</strong> (transferring keylogger)",
+      "<strong>Unauthorized / Suspicious PC Login</strong>",
+      "<strong>Sudden Departure Flag</strong>"
+    ]
+  },
+  S4: {
+    title: "Scenario 4: Lateral Snooping & Home Email",
+    tagClass: "threat",
+    tagLabel: "Insider Threat — S4",
+    description:
+      "A user repeatedly logs into another user's workstation, searches for interesting or confidential files, and emails them to their personal home email address (Gmail, Yahoo, Hotmail), with frequency escalating over time.",
+    primary: [
+      "<strong>Unauthorized / Non-Primary PC Login</strong>",
+      "<strong>Home Email Count</strong>"
+    ],
+    secondary: [
+      "<strong>File Search / Decoy File Access Count</strong>",
+      "<code>Http &rarr; File</code> or <code>File &rarr; Http</code> transitions"
+    ]
+  },
+  MIXED: {
+    title: "Mixed Mode: Multi-Vector Attack",
+    tagClass: "mixed",
+    tagLabel: "Compound Threat — Mixed",
+    description:
+      "A compound threat profile in which a user exhibits behavioral indicators spanning <strong>two or more</strong> distinct insider scenarios within the same observation window (e.g., unauthorized PC snooping + home email exfiltration combined with WikiLeaks uploads or job-search USB theft).",
+    primary: [
+      "Two or more primary threat indicators active simultaneously (e.g., <strong>WikiLeaks + Home Email</strong> or <strong>Unauthorized Login + Thumb Drive</strong>)"
+    ],
+    secondary: [
+      "Multi-channel spikes across <code>email</code>, <code>http</code>, <code>file</code>, and after-hours timing"
+    ]
+  },
+  BENIGN: {
+    title: "Benign Anomaly: Non-Malicious Outlier",
+    tagClass: "benign",
+    tagLabel: "Non-Malicious — Benign",
+    description:
+      "A legitimate employee whose daily reconstruction score crosses the MAD threshold due to an unusual but benign workload surge (deadline crunch, heavy email volume, atypical meeting gaps, or routine authorized USB use) with <strong>no</strong> malicious exfiltration or unauthorized access.",
+    primary: [
+      "<strong>Routine Workload / Timing Spike</strong> (<code>Morning</code>/<code>Afternoon</code> count, inter-activity time, or <code>Logon &rarr; Email</code>)"
+    ],
+    secondary: [
+      "Occasional authorized <code>Thumb Drive</code> or <code>Weekend</code> work without WikiLeaks, keyloggers, decoy files, or unauthorized logins"
+    ]
+  }
 };
+
+function renderPlaybookTab(tabKey) {
+  const item = SCENARIO_PLAYBOOK[tabKey] || SCENARIO_PLAYBOOK.S1;
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tabKey);
+  });
+
+  const box = document.getElementById("tabDetailBox");
+  box.innerHTML = `
+    <div class="tab-col">
+      <h4>${item.title} <span class="tag ${item.tagClass}" style="margin-left:6px;">${item.tagLabel}</span></h4>
+      <p>${item.description}</p>
+    </div>
+    <div class="tab-col">
+      <h4>Primary Indicators (Strongest Drivers)</h4>
+      <ul>${item.primary.map((p) => `<li>${p}</li>`).join("")}</ul>
+    </div>
+    <div class="tab-col">
+      <h4>Secondary / Co-Occurring Indicators</h4>
+      <ul>${item.secondary.map((s) => `<li>${s}</li>`).join("")}</ul>
+    </div>
+  `;
+}
+
+function populateFullMatrixTable() {
+  const tbody = document.getElementById("fullMatrixBody");
+  tbody.innerHTML = Object.values(SCENARIO_PLAYBOOK)
+    .map(
+      (item) => `
+      <tr>
+        <td><strong>${item.title}</strong><br/><span class="tag ${item.tagClass}">${item.tagLabel}</span></td>
+        <td>${item.description}</td>
+        <td><ul>${item.primary.map((p) => `<li>${p}</li>`).join("")}</ul></td>
+        <td><ul>${item.secondary.map((s) => `<li>${s}</li>`).join("")}</ul></td>
+      </tr>
+    `
+    )
+    .join("");
+}
 
 function toRelativePlotPath(rawPath, folderName) {
   if (!rawPath) return "";
@@ -82,7 +202,7 @@ function renderTrial() {
   const trial = filteredTrials[currentIndex];
   trialStartTime = Date.now();
   beeswarmOpenedCount = 0;
-  playbookOpenedCount = 0;
+  playbookTabClicks = 0;
 
   document.getElementById("progressText").textContent = `${currentIndex + 1} / ${filteredTrials.length}`;
   document.getElementById("trialIdText").textContent = trial.trial_id;
@@ -150,7 +270,7 @@ function submitDecision() {
     timestamp_iso: new Date().toISOString(),
     view_mode: document.getElementById("designSelect").value,
     beeswarm_inspected_count: beeswarmOpenedCount,
-    playbook_inspected_count: playbookOpenedCount,
+    playbook_tab_clicks: playbookTabClicks,
     trial_id: trial.trial_id,
     true_scenario: trial.scenario,
     cert_id: trial.cert_id,
@@ -178,7 +298,8 @@ function submitDecision() {
   const fb = document.getElementById("feedbackBox");
   fb.classList.remove("hidden", "correct", "incorrect", "neutral");
 
-  const scenGuide = SCENARIO_REFERENCE[trial.scenario] || "";
+  const scenInfo = SCENARIO_PLAYBOOK[trial.scenario];
+  const scenGuide = scenInfo ? `${scenInfo.title}: ${scenInfo.description}` : "";
 
   if (userDecision === "PREFER_NOT_TO_ANSWER") {
     fb.classList.add("neutral");
@@ -201,7 +322,7 @@ function submitDecision() {
       <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel} (${trial.scenario})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
       <strong>Scenario Signature:</strong> ${scenGuide}<br/>
-      <strong>Tip:</strong> Open the <em>Scenario Playbook</em> at the top to compare primary malicious indicators against secondary workload/timing cues.
+      <strong>Tip:</strong> Switch between the scenario tabs above to compare primary malicious indicators against secondary workload/timing cues.
     `;
   }
 
@@ -243,19 +364,20 @@ function closeZoom() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadManifest();
+  renderPlaybookTab("S1");
+  populateFullMatrixTable();
 
-  const playbookDrawer = document.getElementById("playbookDrawer");
-  const toggleGuideBtn = document.getElementById("toggleGuideBtn");
-
-  toggleGuideBtn.addEventListener("click", () => {
-    const isHidden = playbookDrawer.classList.toggle("hidden");
-    if (!isHidden) playbookOpenedCount++;
-    toggleGuideBtn.textContent = isHidden ? "Show Scenario Playbook" : "Hide Scenario Playbook";
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      playbookTabClicks++;
+      renderPlaybookTab(btn.dataset.tab);
+    });
   });
 
-  document.getElementById("closeGuideBtn").addEventListener("click", () => {
-    playbookDrawer.classList.add("hidden");
-    toggleGuideBtn.textContent = "Show Scenario Playbook";
+  document.getElementById("toggleFullMatrixBtn").addEventListener("click", (e) => {
+    const matrixBox = document.getElementById("fullMatrixBox");
+    const isHidden = matrixBox.classList.toggle("hidden");
+    e.target.textContent = isHidden ? "View All 6 Side-by-Side" : "Hide Full Table";
   });
 
   document.getElementById("startBtn").addEventListener("click", () => {
