@@ -3,6 +3,7 @@ let filteredTrials = [];
 let currentIndex = 0;
 let trialStartTime = Date.now();
 let beeswarmOpenedCount = 0;
+let playbookOpenedCount = 0;
 const sessionLog = [];
 
 const OUTCOME_DESCRIPTIONS = {
@@ -21,7 +22,6 @@ const SCENARIO_REFERENCE = {
   BENIGN: "Benign Control / Benign Anomaly: Routine or elevated workload/timing variance with no malicious exfiltration or policy violation."
 };
 
-// Extract basename cleanly even if testing_manifest.json contains Windows backslashes
 function toRelativePlotPath(rawPath, folderName) {
   if (!rawPath) return "";
   const parts = rawPath.split(/[\\/]/);
@@ -63,7 +63,6 @@ function updateLayoutMode() {
     panelB.classList.remove("hidden");
     beeswarmBar.classList.remove("hidden");
   } else if (mode === "design_A") {
-    // Keep Design A strictly statistical Z-score without leaking SHAP plots
     grid.className = "visual-grid one-col";
     panelA.classList.remove("hidden");
     panelB.classList.add("hidden");
@@ -83,6 +82,7 @@ function renderTrial() {
   const trial = filteredTrials[currentIndex];
   trialStartTime = Date.now();
   beeswarmOpenedCount = 0;
+  playbookOpenedCount = 0;
 
   document.getElementById("progressText").textContent = `${currentIndex + 1} / ${filteredTrials.length}`;
   document.getElementById("trialIdText").textContent = trial.trial_id;
@@ -141,7 +141,6 @@ function submitDecision() {
   const confidence = Number(document.getElementById("confidenceRange").value);
   const responseTimeSec = Number(((Date.now() - trialStartTime) / 1000).toFixed(2));
 
-  // Ground truth: TP and FN are actual insider threat days; FP and TN are benign days
   const actualLabel = trial.alert_type === "TP" || trial.alert_type === "FN" ? "THREAT" : "BENIGN";
   const isCorrect = userDecision === actualLabel;
 
@@ -151,6 +150,7 @@ function submitDecision() {
     timestamp_iso: new Date().toISOString(),
     view_mode: document.getElementById("designSelect").value,
     beeswarm_inspected_count: beeswarmOpenedCount,
+    playbook_inspected_count: playbookOpenedCount,
     trial_id: trial.trial_id,
     true_scenario: trial.scenario,
     cert_id: trial.cert_id,
@@ -201,7 +201,7 @@ function submitDecision() {
       <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel} (${trial.scenario})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
       <strong>Scenario Signature:</strong> ${scenGuide}<br/>
-      <strong>Tip:</strong> Check whether primary malicious indicators (WikiLeaks, Keylogger, Unauthorized PC, Home Email, elevated USB) co-occur with secondary timing/departure cues, or if the spike reflects a non-malicious Benign Anomaly.
+      <strong>Tip:</strong> Open the <em>Scenario Playbook</em> at the top to compare primary malicious indicators against secondary workload/timing cues.
     `;
   }
 
@@ -243,6 +243,20 @@ function closeZoom() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadManifest();
+
+  const playbookDrawer = document.getElementById("playbookDrawer");
+  const toggleGuideBtn = document.getElementById("toggleGuideBtn");
+
+  toggleGuideBtn.addEventListener("click", () => {
+    const isHidden = playbookDrawer.classList.toggle("hidden");
+    if (!isHidden) playbookOpenedCount++;
+    toggleGuideBtn.textContent = isHidden ? "Show Scenario Playbook" : "Hide Scenario Playbook";
+  });
+
+  document.getElementById("closeGuideBtn").addEventListener("click", () => {
+    playbookDrawer.classList.add("hidden");
+    toggleGuideBtn.textContent = "Show Scenario Playbook";
+  });
 
   document.getElementById("startBtn").addEventListener("click", () => {
     if (!allTrials.length) return;
