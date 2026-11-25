@@ -13,6 +13,8 @@
       <h1>Insider Threat Anomaly Triage — Training & Calibration</h1>
     </div>
     <div class="controls">
+      <button id="toggleGuideBtn" class="btn secondary">Show Scenario Playbook</button>
+
       <label for="designSelect">Explanation View:</label>
       <select id="designSelect">
         <option value="side_by_side">Side-by-Side (Design A + Design B)</option>
@@ -36,20 +38,248 @@
   </header>
 
   <main class="container">
+    <!-- Collapsible Scenario & Indicator Reference Playbook (Available Anytime) -->
+    <section id="playbookDrawer" class="card playbook-card hidden">
+      <div class="plot-header">
+        <h2>SOC Insider Threat Scenario & Behavioral Indicator Playbook</h2>
+        <button id="closeGuideBtn" class="btn small">Hide Playbook</button>
+      </div>
+      <p class="muted" style="margin-bottom: 12px;">
+        Use this playbook to map daily behavioral spikes in <strong>Design A (Z-Score)</strong> and
+        <strong>Design B (SHAP)</strong> to the four CERT r5.2 insider threat scenarios, Mixed-Mode attacks,
+        or Benign Anomalies.
+      </p>
+      <div class="table-scroll">
+        <table class="guide-table">
+          <thead>
+            <tr>
+              <th>Category / Scenario</th>
+              <th>Full Behavioral Description</th>
+              <th>Primary Indicators (Strongest Drivers)</th>
+              <th>Secondary / Co-Occurring Indicators</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Scenario 1</strong><br/><span class="tag threat">WikiLeaks Exfiltration</span></td>
+              <td>
+                A user who did not previously use removable drives or work after hours suddenly begins logging in
+                after hours, using a removable thumb drive, and uploading sensitive data to <code>wikileaks.org</code>,
+                leaving the organization shortly thereafter.
+              </td>
+              <td>
+                &bull; <strong>WikiLeaks Access Count</strong><br/>
+                &bull; <strong>Thumb Drive / Removable Media Usage</strong>
+              </td>
+              <td>
+                &bull; After-hours activity (Evening/Night/Weekend)<br/>
+                &bull; <strong>Sudden Departure Flag</strong>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Scenario 2</strong><br/><span class="tag threat">Pre-Departure IP Theft</span></td>
+              <td>
+                A user begins surfing external job websites and soliciting employment from a competitor. Before
+                leaving the company, they use a thumb drive at markedly higher rates than their baseline to steal
+                proprietary data.
+              </td>
+              <td>
+                &bull; <strong>Thumb Drive Usage Count</strong> (sharp spike above baseline)<br/>
+                &bull; <strong>Job Site Access / Competitor Email Count</strong>
+              </td>
+              <td>
+                &bull; <strong>Sudden Departure Flag</strong><br/>
+                &bull; Elevated <code>File</code> / <code>Http</code> activity transitions
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Scenario 3</strong><br/><span class="tag threat">Keylogger &amp; Sabotage</span></td>
+              <td>
+                A disgruntled system administrator downloads a keylogger and uses a thumb drive to transfer it to
+                their supervisor's machine. The next day, they use the collected credentials to log in as the
+                supervisor and send out an alarming mass email causing organization-wide panic before leaving immediately.
+              </td>
+              <td>
+                &bull; <strong>Keylogger Download Count</strong><br/>
+                &bull; <strong>Mass Email Count</strong> (&ge; 5 recipients)
+              </td>
+              <td>
+                &bull; <strong>Thumb Drive Usage Count</strong> (transferring keylogger)<br/>
+                &bull; <strong>Unauthorized / Suspicious PC Login</strong><br/>
+                &bull; <strong>Sudden Departure Flag</strong>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Scenario 4</strong><br/><span class="tag threat">Lateral Snooping &amp; Home Email</span></td>
+              <td>
+                A user repeatedly logs into another user's workstation, searches for interesting or confidential
+                files, and emails them to their personal home email address (e.g., Gmail, Yahoo, Hotmail), with
+                frequency escalating over time.
+              </td>
+              <td>
+                &bull; <strong>Unauthorized / Non-Primary PC Login</strong><br/>
+                &bull; <strong>Home Email Count</strong>
+              </td>
+              <td>
+                &bull; <strong>File Search / Decoy File Access Count</strong><br/>
+                &bull; <code>Http &rarr; File</code> or <code>File &rarr; Http</code> transitions
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Mixed Mode</strong><br/><span class="tag mixed">Multi-Vector Attack</span></td>
+              <td>
+                A compound threat profile in which a user exhibits behavioral indicators spanning <strong>two or more</strong>
+                distinct insider scenarios within the same observation window (e.g., unauthorized PC snooping +
+                home email exfiltration combined with WikiLeaks uploads or job-search USB theft).
+              </td>
+              <td>
+                &bull; Two or more primary threat indicators active simultaneously (e.g., <strong>WikiLeaks + Home Email</strong> or <strong>Unauthorized Login + Thumb Drive</strong>)
+              </td>
+              <td>
+                &bull; Multi-channel spikes across <code>email</code>, <code>http</code>, <code>file</code>, and after-hours timing
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Benign Anomaly</strong><br/><span class="tag benign">Non-Malicious Outlier</span></td>
+              <td>
+                A legitimate employee whose daily reconstruction score crosses the MAD threshold due to an unusual
+                but benign workload surge (e.g., deadline crunch, heavy email volume, atypical meeting gaps, or
+                routine authorized USB use) with <strong>no</strong> malicious exfiltration or unauthorized access.
+              </td>
+              <td>
+                &bull; <strong>Routine Workload / Timing Spike</strong> (<code>Morning</code>/<code>Afternoon</code> count, inter-activity time, or <code>Logon &rarr; Email</code>)
+              </td>
+              <td>
+                &bull; Occasional authorized <code>Thumb Drive</code> or <code>Weekend</code> work without WikiLeaks, keyloggers, decoy files, or unauthorized logins
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Participant / Session Setup Banner -->
     <section id="introCard" class="card intro-card">
       <h2>Analyst Calibration & Training Module</h2>
       <p>
         Review daily behavioral telemetry flagged by an unsupervised Bidirectional LSTM Autoencoder.
-        Each case displays statistical baseline deviations (<strong>Design A</strong>) and/or local surrogate
-        feature attributions (<strong>Design B</strong>), along with a user-level Global SHAP Beeswarm
-        summary in Design B modes. Classify whether each daily profile represents one of the four CERT r5.2
-        insider scenarios, a <strong>Mixed-Mode</strong> multi-vector attack, or a <strong>Benign Anomaly / Normal</strong>
-        workday, and record both primary and secondary behavioral indicators.
+        Before starting, review the <strong>Scenario & Behavioral Indicator Playbook</strong> below so you can
+        accurately distinguish the four CERT r5.2 insider scenarios, <strong>Mixed-Mode</strong> attacks, and
+        <strong>Benign Anomalies</strong>. You can reopen this playbook anytime using the top-right button.
       </p>
-      <div class="participant-row">
+
+      <div class="participant-row" style="margin-bottom: 20px;">
         <input type="text" id="participantId" placeholder="Enter Participant / Analyst ID (e.g., P01)" />
         <button id="startBtn" class="btn primary">Start Training Session</button>
+      </div>
+
+      <!-- Full Scenario & Indicator Table Visible Immediately on Intro Screen -->
+      <div class="table-scroll">
+        <table class="guide-table">
+          <thead>
+            <tr>
+              <th>Category / Scenario</th>
+              <th>Full Behavioral Description</th>
+              <th>Primary Indicators (Strongest Drivers)</th>
+              <th>Secondary / Co-Occurring Indicators</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Scenario 1</strong><br/><span class="tag threat">WikiLeaks Exfiltration</span></td>
+              <td>
+                A user who did not previously use removable drives or work after hours suddenly begins logging in
+                after hours, using a removable thumb drive, and uploading sensitive data to <code>wikileaks.org</code>,
+                leaving the organization shortly thereafter.
+              </td>
+              <td>
+                &bull; <strong>WikiLeaks Access Count</strong><br/>
+                &bull; <strong>Thumb Drive / Removable Media Usage</strong>
+              </td>
+              <td>
+                &bull; After-hours activity (Evening/Night/Weekend)<br/>
+                &bull; <strong>Sudden Departure Flag</strong>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Scenario 2</strong><br/><span class="tag threat">Pre-Departure IP Theft</span></td>
+              <td>
+                A user begins surfing external job websites and soliciting employment from a competitor. Before
+                leaving the company, they use a thumb drive at markedly higher rates than their baseline to steal
+                proprietary data.
+              </td>
+              <td>
+                &bull; <strong>Thumb Drive Usage Count</strong> (sharp spike above baseline)<br/>
+                &bull; <strong>Job Site Access / Competitor Email Count</strong>
+              </td>
+              <td>
+                &bull; <strong>Sudden Departure Flag</strong><br/>
+                &bull; Elevated <code>File</code> / <code>Http</code> activity transitions
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Scenario 3</strong><br/><span class="tag threat">Keylogger &amp; Sabotage</span></td>
+              <td>
+                A disgruntled system administrator downloads a keylogger and uses a thumb drive to transfer it to
+                their supervisor's machine. The next day, they use the collected credentials to log in as the
+                supervisor and send out an alarming mass email causing organization-wide panic before leaving immediately.
+              </td>
+              <td>
+                &bull; <strong>Keylogger Download Count</strong><br/>
+                &bull; <strong>Mass Email Count</strong> (&ge; 5 recipients)
+              </td>
+              <td>
+                &bull; <strong>Thumb Drive Usage Count</strong> (transferring keylogger)<br/>
+                &bull; <strong>Unauthorized / Suspicious PC Login</strong><br/>
+                &bull; <strong>Sudden Departure Flag</strong>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Scenario 4</strong><br/><span class="tag threat">Lateral Snooping &amp; Home Email</span></td>
+              <td>
+                A user repeatedly logs into another user's workstation, searches for interesting or confidential
+                files, and emails them to their personal home email address (e.g., Gmail, Yahoo, Hotmail), with
+                frequency escalating over time.
+              </td>
+              <td>
+                &bull; <strong>Unauthorized / Non-Primary PC Login</strong><br/>
+                &bull; <strong>Home Email Count</strong>
+              </td>
+              <td>
+                &bull; <strong>File Search / Decoy File Access Count</strong><br/>
+                &bull; <code>Http &rarr; File</code> or <code>File &rarr; Http</code> transitions
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Mixed Mode</strong><br/><span class="tag mixed">Multi-Vector Attack</span></td>
+              <td>
+                A compound threat profile in which a user exhibits behavioral indicators spanning <strong>two or more</strong>
+                distinct insider scenarios within the same observation window (e.g., unauthorized PC snooping +
+                home email exfiltration combined with WikiLeaks uploads or job-search USB theft).
+              </td>
+              <td>
+                &bull; Two or more primary threat indicators active simultaneously (e.g., <strong>WikiLeaks + Home Email</strong> or <strong>Unauthorized Login + Thumb Drive</strong>)
+              </td>
+              <td>
+                &bull; Multi-channel spikes across <code>email</code>, <code>http</code>, <code>file</code>, and after-hours timing
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Benign Anomaly</strong><br/><span class="tag benign">Non-Malicious Outlier</span></td>
+              <td>
+                A legitimate employee whose daily reconstruction score crosses the MAD threshold due to an unusual
+                but benign workload surge (e.g., deadline crunch, heavy email volume, atypical meeting gaps, or
+                routine authorized USB use) with <strong>no</strong> malicious exfiltration or unauthorized access.
+              </td>
+              <td>
+                &bull; <strong>Routine Workload / Timing Spike</strong> (<code>Morning</code>/<code>Afternoon</code> count, inter-activity time, or <code>Logon &rarr; Email</code>)
+              </td>
+              <td>
+                &bull; Occasional authorized <code>Thumb Drive</code> or <code>Weekend</code> work without WikiLeaks, keyloggers, decoy files, or unauthorized logins
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
