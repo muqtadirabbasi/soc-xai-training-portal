@@ -2,6 +2,7 @@ let allTrials = [];
 let filteredTrials = [];
 let currentIndex = 0;
 let trialStartTime = Date.now();
+let beeswarmOpenedCount = 0;
 const sessionLog = [];
 
 const OUTCOME_DESCRIPTIONS = {
@@ -27,12 +28,13 @@ async function loadManifest() {
     allTrials = (payload.trials || []).map((t) => ({
       ...t,
       web_design_A: toRelativePlotPath(t.design_A_path, "design_A_zscore"),
-      web_design_B: toRelativePlotPath(t.design_B_path, "design_B_shap")
+      web_design_B: toRelativePlotPath(t.design_B_path, "design_B_shap"),
+      web_beeswarm: `./data/beeswarms/beeswarm_${t.scenario}_${t.cert_id}.png`
     }));
     filteredTrials = [...allTrials];
   } catch (err) {
     alert(
-      "Could not load ./data/testing_manifest.json. Ensure testing_manifest.json and the testing/ image folders are placed inside /data/."
+      "Could not load ./data/testing_manifest.json. Ensure testing_manifest.json, beeswarms/, and testing/ folders are placed inside /data/."
     );
     console.error(err);
   }
@@ -43,19 +45,27 @@ function updateLayoutMode() {
   const grid = document.getElementById("visualGrid");
   const panelA = document.getElementById("panelA");
   const panelB = document.getElementById("panelB");
+  const beeswarmBar = document.getElementById("beeswarmToolbar");
+  const beeswarmPanel = document.getElementById("beeswarmPanel");
 
   if (mode === "side_by_side") {
     grid.className = "visual-grid two-col";
     panelA.classList.remove("hidden");
     panelB.classList.remove("hidden");
+    beeswarmBar.classList.remove("hidden");
   } else if (mode === "design_A") {
+    // Keep Design A strictly statistical Z-score without leaking SHAP plots
     grid.className = "visual-grid one-col";
     panelA.classList.remove("hidden");
     panelB.classList.add("hidden");
+    beeswarmBar.classList.add("hidden");
+    beeswarmPanel.classList.add("hidden");
+    document.getElementById("toggleBeeswarmBtn").textContent = "Show User Global Beeswarm";
   } else {
     grid.className = "visual-grid one-col";
     panelA.classList.add("hidden");
     panelB.classList.remove("hidden");
+    beeswarmBar.classList.remove("hidden");
   }
 }
 
@@ -63,6 +73,7 @@ function renderTrial() {
   if (!filteredTrials.length) return;
   const trial = filteredTrials[currentIndex];
   trialStartTime = Date.now();
+  beeswarmOpenedCount = 0;
 
   document.getElementById("progressText").textContent = `${currentIndex + 1} / ${filteredTrials.length}`;
   document.getElementById("trialIdText").textContent = trial.trial_id;
@@ -73,6 +84,9 @@ function renderTrial() {
 
   document.getElementById("imgA").src = trial.web_design_A;
   document.getElementById("imgB").src = trial.web_design_B;
+  document.getElementById("imgBeeswarm").src = trial.web_beeswarm;
+  document.getElementById("beeswarmTitle").textContent =
+    `Global SHAP Beeswarm — Scenario ${trial.scenario} (${trial.cert_id}) Across All Test Days`;
 
   // Reset form inputs
   document.querySelectorAll('input[name="decision"]').forEach((r) => (r.checked = false));
@@ -115,12 +129,12 @@ function submitDecision() {
   const actualLabel = trial.alert_type === "TP" || trial.alert_type === "FN" ? "THREAT" : "BENIGN";
   const isCorrect = userDecision === actualLabel;
 
-  // Upsert log entry for this trial
   const existingIdx = sessionLog.findIndex((item) => item.trial_id === trial.trial_id);
   const record = {
     participant_id: document.getElementById("participantId").value.trim() || "ANON",
     timestamp_iso: new Date().toISOString(),
     view_mode: document.getElementById("designSelect").value,
+    beeswarm_inspected_count: beeswarmOpenedCount,
     trial_id: trial.trial_id,
     scenario: trial.scenario,
     cert_id: trial.cert_id,
@@ -163,7 +177,7 @@ function submitDecision() {
     fb.innerHTML = `
       <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel}</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
-      <strong>Tip:</strong> Compare the raw baseline counts in Design A against the top positive/negative feature attributions in Design B to separate routine workload spikes from true exfiltration or policy violations.
+      <strong>Tip:</strong> Cross-check today's feature values against the Global SHAP Beeswarm and baseline counts to distinguish routine role variance from true insider activity.
     `;
   }
 
@@ -223,6 +237,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTrial();
   });
 
+  document.getElementById("toggleBeeswarmBtn").addEventListener("click", (e) => {
+    const panel = document.getElementById("beeswarmPanel");
+    const isHidden = panel.classList.toggle("hidden");
+    if (!isHidden) beeswarmOpenedCount++;
+    e.target.textContent = isHidden ? "Show User Global Beeswarm" : "Hide User Global Beeswarm";
+  });
+
   document.getElementById("confidenceRange").addEventListener("input", (e) => {
     document.getElementById("confidenceVal").textContent = `${e.target.value}%`;
   });
@@ -248,4 +269,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("exportCsvBtn").addEventListener("click", exportSessionCsv);
   document.getElementById("imgA").addEventListener("click", () => openZoom("imgA"));
   document.getElementById("imgB").addEventListener("click", () => openZoom("imgB"));
+  document.getElementById("imgBeeswarm").addEventListener("click", () => openZoom("imgBeeswarm"));
 });
