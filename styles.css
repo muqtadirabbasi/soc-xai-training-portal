@@ -93,15 +93,15 @@ select, input[type="text"] {
   margin-bottom: 18px;
 }
 
-.intro-card h2 {
+.intro-card h2, .playbook-card h2 {
   margin-bottom: 8px;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
 }
 
 .intro-card p {
   color: var(--muted);
   margin-bottom: 16px;
-  max-width: 920px;
+  max-width: 960px;
 }
 
 .participant-row {
@@ -112,6 +112,68 @@ select, input[type="text"] {
 
 .participant-row input {
   width: 300px;
+}
+
+/* Scenario Playbook Table */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  background: var(--bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.guide-table th, .guide-table td {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.guide-table th {
+  background: var(--surface-alt);
+  font-weight: 600;
+  color: #fff;
+}
+
+.guide-table td code {
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: #93c5fd;
+}
+
+.tag {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.tag.threat {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.tag.mixed {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.tag.benign {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
 .status-bar {
