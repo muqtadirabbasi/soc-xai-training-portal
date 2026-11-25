@@ -7,9 +7,18 @@ const sessionLog = [];
 
 const OUTCOME_DESCRIPTIONS = {
   TP: "True Positive (TP): Actual insider threat day accurately flagged above the MAD anomaly threshold.",
-  FP: "False Positive (FP): Benign workday flagged above the MAD threshold due to unusual but non-malicious activity variance.",
+  FP: "False Positive (FP): Benign anomaly / normal workday flagged above the MAD threshold due to non-malicious activity variance.",
   FN: "False Negative (FN): Actual insider threat day whose reconstruction error fell below the MAD threshold.",
   TN: "True Negative (TN): Normal benign workday accurately below the MAD anomaly threshold."
+};
+
+const SCENARIO_REFERENCE = {
+  S1: "Scenario 1 (WikiLeaks Exfiltration): Primary = WikiLeaks access + removable drive usage; Secondary = after-hours logons & sudden departure.",
+  S2: "Scenario 2 (Pre-Departure IP Theft): Primary = elevated thumb drive usage + job site / competitor email; Secondary = sudden departure.",
+  S3: "Scenario 3 (Keylogger / Sabotage): Primary = keylogger download + mass email (>=5 recipients); Secondary = thumb drive transfer, unauthorized PC login & sudden departure.",
+  S4: "Scenario 4 (Lateral Snooping & Home Email): Primary = unauthorized PC logon + home email; Secondary = sensitive/decoy file search.",
+  MIXED: "Mixed Mode: Co-occurrence of indicators spanning multiple insider threat scenarios within the same timeline.",
+  BENIGN: "Benign Control / Benign Anomaly: Routine or elevated workload/timing variance with no malicious exfiltration or policy violation."
 };
 
 // Extract basename cleanly even if testing_manifest.json contains Windows backslashes
@@ -90,9 +99,11 @@ function renderTrial() {
 
   // Reset form inputs
   document.querySelectorAll('input[name="decision"]').forEach((r) => (r.checked = false));
+  document.getElementById("scenarioHypothesis").value = "";
+  document.getElementById("primaryCue").value = "";
+  document.querySelectorAll('input[name="secondaryCue"]').forEach((cb) => (cb.checked = false));
   document.getElementById("confidenceRange").value = 50;
   document.getElementById("confidenceVal").textContent = "50%";
-  document.getElementById("primaryCue").value = "";
 
   const fb = document.getElementById("feedbackBox");
   fb.className = "feedback-box hidden";
@@ -116,13 +127,18 @@ function submitDecision() {
   const trial = filteredTrials[currentIndex];
   const selectedRadio = document.querySelector('input[name="decision"]:checked');
   if (!selectedRadio) {
-    alert("Please select a triage classification (or 'Prefer not to answer') before submitting.");
+    alert("Please select a triage classification decision (or 'Prefer not to answer') before submitting.");
     return;
   }
 
   const userDecision = selectedRadio.value;
-  const confidence = Number(document.getElementById("confidenceRange").value);
+  const scenarioHypothesis = document.getElementById("scenarioHypothesis").value || "unspecified";
   const primaryCue = document.getElementById("primaryCue").value || "unspecified";
+  const secondaryCuesList = Array.from(document.querySelectorAll('input[name="secondaryCue"]:checked')).map(
+    (cb) => cb.value
+  );
+  const secondaryCuesStr = secondaryCuesList.length ? secondaryCuesList.join(";") : "none";
+  const confidence = Number(document.getElementById("confidenceRange").value);
   const responseTimeSec = Number(((Date.now() - trialStartTime) / 1000).toFixed(2));
 
   // Ground truth: TP and FN are actual insider threat days; FP and TN are benign days
@@ -136,15 +152,18 @@ function submitDecision() {
     view_mode: document.getElementById("designSelect").value,
     beeswarm_inspected_count: beeswarmOpenedCount,
     trial_id: trial.trial_id,
-    scenario: trial.scenario,
+    true_scenario: trial.scenario,
     cert_id: trial.cert_id,
     date: trial.date,
     model_outcome_type: trial.alert_type,
     actual_ground_truth: actualLabel,
     user_decision: userDecision,
+    scenario_hypothesis: scenarioHypothesis,
     is_correct: userDecision === "PREFER_NOT_TO_ANSWER" ? "" : isCorrect,
     confidence_pct: confidence,
     primary_cue: primaryCue,
+    secondary_cues: secondaryCuesStr,
+    secondary_cue_count: secondaryCuesList.length,
     response_time_sec: responseTimeSec,
     anomaly_score: trial.anomaly_score,
     mad_threshold: trial.threshold
@@ -159,25 +178,30 @@ function submitDecision() {
   const fb = document.getElementById("feedbackBox");
   fb.classList.remove("hidden", "correct", "incorrect", "neutral");
 
+  const scenGuide = SCENARIO_REFERENCE[trial.scenario] || "";
+
   if (userDecision === "PREFER_NOT_TO_ANSWER") {
     fb.classList.add("neutral");
     fb.innerHTML = `
       <strong>Response Recorded (Skipped)</strong><br/>
-      <strong>Ground Truth:</strong> ${actualLabel} &mdash; ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}
+      <strong>Ground Truth:</strong> ${actualLabel} (${trial.scenario}) &mdash; ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
+      <strong>Scenario Signature:</strong> ${scenGuide}
     `;
   } else if (isCorrect) {
     fb.classList.add("correct");
     fb.innerHTML = `
       <strong>Correct Triage Assessment (${actualLabel})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
-      <strong>Selection Reason:</strong> ${trial.selection_reason} | <strong>Response Time:</strong> ${responseTimeSec}s
+      <strong>Scenario Signature:</strong> ${scenGuide}<br/>
+      <strong>Logged Indicators:</strong> Primary = <code>${primaryCue}</code> | Secondary = <code>${secondaryCuesStr}</code> | Response Time = ${responseTimeSec}s
     `;
   } else {
     fb.classList.add("incorrect");
     fb.innerHTML = `
-      <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel}</strong><br/>
+      <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel} (${trial.scenario})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
-      <strong>Tip:</strong> Cross-check today's feature values against the Global SHAP Beeswarm and baseline counts to distinguish routine role variance from true insider activity.
+      <strong>Scenario Signature:</strong> ${scenGuide}<br/>
+      <strong>Tip:</strong> Check whether primary malicious indicators (WikiLeaks, Keylogger, Unauthorized PC, Home Email, elevated USB) co-occur with secondary timing/departure cues, or if the spike reflects a non-malicious Benign Anomaly.
     `;
   }
 
@@ -234,6 +258,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const val = e.target.value;
     filteredTrials = val === "ALL" ? [...allTrials] : allTrials.filter((t) => t.scenario === val);
     currentIndex = 0;
+    if (!filteredTrials.length) {
+      alert(`No cases found in testing_manifest.json for scenario filter: ${val}`);
+      return;
+    }
     renderTrial();
   });
 
