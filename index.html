@@ -22,12 +22,13 @@
 
       <label for="scenarioFilter">Scenario Filter:</label>
       <select id="scenarioFilter">
-        <option value="ALL">All Scenarios</option>
-        <option value="S1">S1 (FZG0389)</option>
-        <option value="S2">S2 (TRC1838)</option>
-        <option value="S3">S3 (CWW1120)</option>
-        <option value="S4">S4 (ASH0298)</option>
-        <option value="BENIGN">Benign Control</option>
+        <option value="ALL">All Cases</option>
+        <option value="S1">S1 (FZG0389 — WikiLeaks)</option>
+        <option value="S2">S2 (TRC1838 — IP Theft)</option>
+        <option value="S3">S3 (CWW1120 — Keylogger / Sabotage)</option>
+        <option value="S4">S4 (ASH0298 — Lateral Snooping)</option>
+        <option value="MIXED">Mixed Mode</option>
+        <option value="BENIGN">Benign Control / Benign Anomaly</option>
       </select>
 
       <button id="exportCsvBtn" class="btn secondary">Export Session Log (CSV)</button>
@@ -42,8 +43,9 @@
         Review daily behavioral telemetry flagged by an unsupervised Bidirectional LSTM Autoencoder.
         Each case displays statistical baseline deviations (<strong>Design A</strong>) and/or local surrogate
         feature attributions (<strong>Design B</strong>), along with a user-level Global SHAP Beeswarm
-        summary in Design B modes. Assess whether each daily activity profile warrants escalation,
-        provide your confidence rating, and inspect immediate ground-truth feedback.
+        summary in Design B modes. Classify whether each daily profile represents one of the four CERT r5.2
+        insider scenarios, a <strong>Mixed-Mode</strong> multi-vector attack, or a <strong>Benign Anomaly / Normal</strong>
+        workday, and record both primary and secondary behavioral indicators.
       </p>
       <div class="participant-row">
         <input type="text" id="participantId" placeholder="Enter Participant / Analyst ID (e.g., P01)" />
@@ -56,7 +58,7 @@
       <div class="status-bar card">
         <div><strong>Progress:</strong> <span id="progressText">1 / 1</span></div>
         <div><strong>Trial ID:</strong> <span id="trialIdText">—</span></div>
-        <div><strong>User / Scenario:</strong> <span id="userText">—</span></div>
+        <div><strong>User / Case:</strong> <span id="userText">—</span></div>
         <div><strong>Date:</strong> <span id="dateText">—</span></div>
         <div>
           <strong>Reconstruction Score:</strong> <span id="scoreText">—</span>
@@ -109,52 +111,92 @@
 
       <!-- Analyst Triage Response Panel -->
       <section class="card decision-card">
-        <h3>Analyst Triage Decision</h3>
+        <h3>Analyst Triage Decision & Behavioral Attribution</h3>
         <div class="decision-grid">
+          <!-- Column 1: Triage Action & Scenario / Pattern Classification -->
           <div class="field-group">
-            <label>1. Classification Decision:</label>
+            <label>1. Triage Classification Decision:</label>
             <div class="radio-row">
               <label class="radio-pill">
                 <input type="radio" name="decision" value="THREAT" />
-                Escalate as Insider Threat / Anomaly
+                Escalate as Insider Threat / Malicious Anomaly
               </label>
               <label class="radio-pill">
                 <input type="radio" name="decision" value="BENIGN" />
-                Dismiss as Benign / Normal Behavior
+                Dismiss as Benign (Normal or Benign Anomaly)
               </label>
               <label class="radio-pill muted-pill">
                 <input type="radio" name="decision" value="PREFER_NOT_TO_ANSWER" />
                 Prefer not to answer
               </label>
             </div>
-          </div>
 
-          <div class="field-group">
-            <label for="confidenceRange">
-              2. Decision Confidence: <strong id="confidenceVal">50%</strong>
-            </label>
-            <input type="range" id="confidenceRange" min="0" max="100" step="5" value="50" />
-          </div>
-
-          <div class="field-group">
-            <label for="primaryCue">3. Primary Behavioral Indicator Observed:</label>
-            <select id="primaryCue">
-              <option value="">-- Select primary indicator --</option>
-              <option value="removable_media">Thumb Drive / Removable Media Activity</option>
-              <option value="wikileaks_exfil">WikiLeaks / Unauthorized External Web Access</option>
-              <option value="job_competitor">Job Search / Competitor Email Communication</option>
-              <option value="after_hours_login">After-Hours / Unauthorized PC Logon</option>
-              <option value="file_decoy">Decoy / Sensitive File Access or Search</option>
-              <option value="normal_variance">Routine Day-to-Day Workload Variance</option>
+            <label for="scenarioHypothesis" class="sub-label">2. Suspected Scenario / Pattern Type:</label>
+            <select id="scenarioHypothesis">
+              <option value="">-- Select scenario / pattern type --</option>
+              <option value="S1_wikileaks">Scenario 1: WikiLeaks Exfiltration (USB + WikiLeaks + After-Hours)</option>
+              <option value="S2_ip_theft">Scenario 2: Pre-Departure IP Theft (Job Sites / Competitor + USB)</option>
+              <option value="S3_keylogger_sabotage">Scenario 3: Keylogger / Mass Email Sabotage</option>
+              <option value="S4_lateral_home_email">Scenario 4: Unauthorized PC Login + File Search + Home Email</option>
+              <option value="MIXED_MODE">Mixed Mode: Multiple Co-Occurring Attack Scenarios</option>
+              <option value="BENIGN_ANOMALY">Benign Anomaly: High Workload / Timing Shift (Non-Malicious)</option>
+              <option value="NORMAL_BASELINE">Normal Baseline Activity</option>
               <option value="prefer_not_to_answer">Prefer not to answer</option>
             </select>
+          </div>
+
+          <!-- Column 2: Primary Indicator & Confidence -->
+          <div class="field-group">
+            <label for="primaryCue">3. Primary Behavioral Indicator (Strongest Driver):</label>
+            <select id="primaryCue">
+              <option value="">-- Select primary indicator --</option>
+              <option value="wikileaks_access">WikiLeaks Access (S1)</option>
+              <option value="thumb_removable_drive">Thumb Drive / Removable Media Usage (S1 / S2 / S3)</option>
+              <option value="job_site_competitor">Job Site Surfing / Competitor Email (S2)</option>
+              <option value="keylogger_download">Keylogger / Spyware Download (S3)</option>
+              <option value="mass_email">Mass Email Burst (&ge; 5 Recipients) (S3)</option>
+              <option value="unauthorized_pc_login">Unauthorized / Non-Primary PC Logon (S4 / S3)</option>
+              <option value="file_search_decoy">Decoy / Sensitive File Search &amp; Access (S4)</option>
+              <option value="home_email">Personal / Home Email Exfiltration (S4)</option>
+              <option value="after_hours_departure">After-Hours Activity / Sudden Departure (S1 / S2 / S3)</option>
+              <option value="workload_timing_spike">Routine Workload / Inter-Activity Timing Spike (Benign Anomaly)</option>
+              <option value="prefer_not_to_answer">Prefer not to answer</option>
+            </select>
+
+            <label for="confidenceRange" class="sub-label">
+              4. Decision Confidence: <strong id="confidenceVal">50%</strong>
+            </label>
+            <input type="range" id="confidenceRange" min="0" max="100" step="5" value="50" />
+            <div class="range-hints">
+              <span>0% (Guess)</span>
+              <span>50%</span>
+              <span>100% (Certain)</span>
+            </div>
+          </div>
+
+          <!-- Column 3: Secondary / Co-Occurring Indicators (Multi-Select) -->
+          <div class="field-group">
+            <label>5. Secondary / Co-Occurring Indicators (Check all that apply):</label>
+            <div class="checkbox-list">
+              <label><input type="checkbox" name="secondaryCue" value="wikileaks_access" /> WikiLeaks Access</label>
+              <label><input type="checkbox" name="secondaryCue" value="thumb_removable_drive" /> Thumb / Removable Drive</label>
+              <label><input type="checkbox" name="secondaryCue" value="job_site_competitor" /> Job Site / Competitor Email</label>
+              <label><input type="checkbox" name="secondaryCue" value="keylogger_download" /> Keylogger Download</label>
+              <label><input type="checkbox" name="secondaryCue" value="mass_email" /> Mass Email (&ge; 5 recipients)</label>
+              <label><input type="checkbox" name="secondaryCue" value="unauthorized_pc_login" /> Unauthorized PC Login</label>
+              <label><input type="checkbox" name="secondaryCue" value="file_search_decoy" /> Decoy / Sensitive File Access</label>
+              <label><input type="checkbox" name="secondaryCue" value="home_email" /> Home Email (Gmail/Yahoo/Hotmail)</label>
+              <label><input type="checkbox" name="secondaryCue" value="after_hours_weekend" /> After-Hours / Weekend Shift</label>
+              <label><input type="checkbox" name="secondaryCue" value="sudden_departure" /> Sudden Departure Flag</label>
+              <label><input type="checkbox" name="secondaryCue" value="workload_timing_spike" /> Workload / Timing Variance</label>
+            </div>
           </div>
         </div>
 
         <div class="action-row">
           <button id="submitDecisionBtn" class="btn primary">Submit & Check Ground Truth</button>
-          <button id="prevBtn" class="btn secondary">← Previous</button>
-          <button id="nextBtn" class="btn secondary">Next Case →</button>
+          <button id="prevBtn" class="btn secondary">&larr; Previous</button>
+          <button id="nextBtn" class="btn secondary">Next Case &rarr;</button>
         </div>
 
         <!-- Immediate Training Feedback Box -->
