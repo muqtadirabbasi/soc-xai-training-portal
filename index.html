@@ -41,8 +41,9 @@
       <p>
         Review daily behavioral telemetry flagged by an unsupervised Bidirectional LSTM Autoencoder.
         Each case displays statistical baseline deviations (<strong>Design A</strong>) and/or local surrogate
-        feature attributions (<strong>Design B</strong>). Assess whether each daily activity profile warrants
-        escalation, provide your confidence rating, and inspect immediate ground-truth feedback.
+        feature attributions (<strong>Design B</strong>), along with a user-level Global SHAP Beeswarm
+        summary in Design B modes. Assess whether each daily activity profile warrants escalation,
+        provide your confidence rating, and inspect immediate ground-truth feedback.
       </p>
       <div class="participant-row">
         <input type="text" id="participantId" placeholder="Enter Participant / Analyst ID (e.g., P01)" />
@@ -61,10 +62,29 @@
           <strong>Reconstruction Score:</strong> <span id="scoreText">—</span>
           <span class="muted">(MAD Cutoff: <span id="threshText">—</span>)</span>
         </div>
-        <div><strong>Session Accuracy:</strong> <span id="accuracyText">0%</span></div>
+        <div><strong>Session Accuracy:</strong> <span id="accuracyText">N/A</span></div>
       </div>
 
-      <!-- Stimulus Visualizations -->
+      <!-- Collapsible Global User Profile (Beeswarm) -->
+      <div id="beeswarmToolbar" class="card beeswarm-bar">
+        <div>
+          <strong>Global User Behavioral Context (SHAP Beeswarm):</strong>
+          <span class="muted">Compare today's alert against this user's behavioral distribution across all test days (N).</span>
+        </div>
+        <button id="toggleBeeswarmBtn" class="btn secondary">Show User Global Beeswarm</button>
+      </div>
+
+      <div id="beeswarmPanel" class="card plot-card hidden">
+        <div class="plot-header">
+          <h3 id="beeswarmTitle">Global SHAP Beeswarm — User Behavioral Distribution</h3>
+          <button class="btn small" onclick="openZoom('imgBeeswarm')">Zoom</button>
+        </div>
+        <div class="img-wrapper beeswarm-wrapper">
+          <img id="imgBeeswarm" src="" alt="Global SHAP Beeswarm Plot" />
+        </div>
+      </div>
+
+      <!-- Daily Stimulus Visualizations -->
       <div id="visualGrid" class="visual-grid two-col">
         <div id="panelA" class="card plot-card">
           <div class="plot-header">
