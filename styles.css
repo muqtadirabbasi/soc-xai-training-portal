@@ -96,7 +96,7 @@ select, input[type="text"] {
 .intro-card p {
   color: var(--muted);
   margin-bottom: 16px;
-  max-width: 850px;
+  max-width: 880px;
 }
 
 .participant-row {
@@ -118,9 +118,24 @@ select, input[type="text"] {
   background: var(--surface-alt);
 }
 
+.beeswarm-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--surface);
+}
+
+.beeswarm-wrapper {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
 .muted {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
 }
 
 .visual-grid {
