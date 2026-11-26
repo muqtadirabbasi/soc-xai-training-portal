@@ -115,27 +115,11 @@ select, input[type="text"] {
   width: 300px;
 }
 
-/* Color Pills for Z-Score & SHAP Legends */
+/* Dark Red Badge for Z-Score High Deviation & SHAP Threat Attribution */
 .dark-red-pill {
-  color: #fca5a5;
+  color: #f87171;
   background: #450a0a;
   border: 1px solid #991b1b;
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
-.orange-pill {
-  color: #fb923c;
-  background: #431407;
-  border: 1px solid #9a3412;
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
-.blue-pill {
-  color: #93c5fd;
-  background: #172554;
-  border: 1px solid #1e40af;
   padding: 1px 6px;
   border-radius: 4px;
 }
@@ -195,16 +179,11 @@ select, input[type="text"] {
   font-weight: 600;
 }
 
-.tag.threat {
-  background: rgba(239, 68, 68, 0.18);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-}
-
+.tag.threat,
 .tag.mixed {
-  background: rgba(251, 146, 60, 0.22);
-  color: #fb923c;
-  border: 1px solid rgba(251, 146, 60, 0.5);
+  background: #450a0a;
+  color: #f87171;
+  border: 1px solid #991b1b;
 }
 
 .tag.benign {
