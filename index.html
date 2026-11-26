@@ -56,8 +56,9 @@
       <p>
         Review daily behavioral telemetry flagged by an unsupervised Bidirectional LSTM Autoencoder across each
         user's full multi-month timeline. Before starting, review the <strong>Scenario & Behavioral Indicator Playbook</strong>
-        below. During active triage, an interactive <strong>Scenario & Indicator Quick-Reference</strong> and a clickable
-        <strong>Multi-Day Anomaly Timeline</strong> stay embedded directly inside your triage workspace.
+        below. During active triage, an interactive <strong>Scenario & Indicator Quick-Reference</strong>, clickable
+        <strong>Multi-Day Anomaly Timeline</strong>, <strong>Global SHAP Beeswarm</strong>, and
+        <strong>Detector Confusion Matrix</strong> stay accessible inside your workspace.
       </p>
 
       <div class="participant-row" style="margin-bottom: 20px;">
@@ -203,22 +204,44 @@
         <div><strong>Session Accuracy:</strong> <span id="accuracyText">N/A</span></div>
       </div>
 
-      <!-- Collapsible Global User Profile (Beeswarm) -->
-      <div id="beeswarmToolbar" class="card beeswarm-bar">
+      <!-- User-Level Diagnostics Toolbar: Global Beeswarm + Confusion Matrix -->
+      <div id="userDiagnosticsBar" class="card beeswarm-bar">
         <div>
-          <strong>Global User Behavioral Context (SHAP Beeswarm):</strong>
-          <span class="muted">Compare today's alert against this user's behavioral distribution across all test days (N).</span>
+          <strong>User-Level Model Diagnostics:</strong>
+          <span id="userMetricsBadge" class="muted">Inspect user-wide SHAP feature distributions and detector confusion matrix.</span>
         </div>
-        <button id="toggleBeeswarmBtn" class="btn secondary">Show User Global Beeswarm</button>
+        <div class="action-row">
+          <button id="toggleBeeswarmBtn" class="btn secondary">Show Global Beeswarm</button>
+          <button id="toggleCmBtn" class="btn secondary">Show Confusion Matrix</button>
+        </div>
       </div>
 
-      <div id="beeswarmPanel" class="card plot-card hidden">
-        <div class="plot-header">
-          <h3 id="beeswarmTitle">Global SHAP Beeswarm — User Behavioral Distribution</h3>
-          <button class="btn small" onclick="openZoom('imgBeeswarm')">Zoom</button>
+      <!-- Collapsible User-Level Diagnostics Grid (Beeswarm + Confusion Matrix) -->
+      <div id="diagnosticsPanel" class="visual-grid two-col hidden">
+        <div id="beeswarmCard" class="card plot-card hidden">
+          <div class="plot-header">
+            <h3 id="beeswarmTitle">Global SHAP Beeswarm — User Behavioral Distribution</h3>
+            <button class="btn small" onclick="openZoom('imgBeeswarm')">Zoom</button>
+          </div>
+          <div class="muted" style="margin-bottom: 8px; font-size: 0.82rem;">
+            Summarizes feature impact across all test days (<em>N</em>) for this user: red points = high feature values; blue points = low feature values.
+          </div>
+          <div class="img-wrapper">
+            <img id="imgBeeswarm" src="" alt="Global SHAP Beeswarm Plot" />
+          </div>
         </div>
-        <div class="img-wrapper beeswarm-wrapper">
-          <img id="imgBeeswarm" src="" alt="Global SHAP Beeswarm Plot" />
+
+        <div id="cmCard" class="card plot-card hidden">
+          <div class="plot-header">
+            <h3 id="cmTitle">Detector Confusion Matrix — User Evaluation</h3>
+            <button class="btn small" onclick="openZoom('imgCm')">Zoom</button>
+          </div>
+          <div id="cmMetricsText" class="muted" style="margin-bottom: 8px; font-size: 0.82rem;">
+            Evaluates the unsupervised BiLSTM-AE MAD threshold across all test days for this user.
+          </div>
+          <div class="img-wrapper cm-wrapper">
+            <img id="imgCm" src="" alt="Confusion Matrix Heatmap" />
+          </div>
         </div>
       </div>
 
@@ -232,7 +255,7 @@
           <div class="muted" style="margin-bottom: 10px; font-size: 0.82rem; line-height: 1.4;">
             <strong>Z-Score Criteria:</strong>
             <span style="color:#fca5a5;">Red (&ge; +2.0&sigma;)</span> = strong spike above 96-day baseline;
-            <span style="color:#fdba74;">Orange (0 to +2.0&sigma;)</span> = mild elevation (note: rare zero-baseline events like WikiLeaks, Keylogger, or Unauthorized Login equal +1.0&sigma; per single event);
+            <span style="color:#fdba74;">Orange (0 to +2.0&sigma;)</span> = mild elevation (rare zero-baseline events like WikiLeaks, Keylogger, or Unauthorized Login equal +1.0&sigma; per event);
             <span style="color:#93c5fd;">Blue (&le; 0&sigma;)</span> = normal or below baseline.
           </div>
           <div class="img-wrapper">
@@ -247,10 +270,9 @@
           </div>
           <div class="muted" style="margin-bottom: 10px; font-size: 0.82rem; line-height: 1.4;">
             <strong>SHAP Conservation Rule &mdash; <code>f(x) = E[f(X)] + &Sigma; &phi;<sub>j</sub></code>:</strong>
-            Start at expected baseline <code>E[f(X)]</code> (bottom) and sum all feature arrows to reach final surrogate threat probability <code>f(x)</code> (top).
+            Start at expected baseline <code>E[f(X)]</code> (bottom) and sum all arrows to reach final threat probability <code>f(x)</code> (top).
             <span style="color:#fca5a5;">Red (+&phi;)</span> pushes toward <em>Threat</em>;
-            <span style="color:#93c5fd;">Blue (&minus;&phi;)</span> pushes toward <em>Benign</em>.
-            Values of <code>f(x) &ge; 0.50</code> indicate a flagged anomaly.
+            <span style="color:#93c5fd;">Blue (&minus;&phi;)</span> pushes toward <em>Benign</em> (<code>f(x) &ge; 0.50</code> = flagged).
           </div>
           <div class="img-wrapper">
             <img id="imgB" src="" alt="Design B SHAP Plot" />
@@ -277,10 +299,8 @@
           <button class="tab-btn" data-tab="BENIGN">Benign Anomaly</button>
         </div>
 
-        <!-- Single-Tab Focused Card View -->
         <div id="tabDetailBox" class="tab-detail-box"></div>
 
-        <!-- Optional Full 6-Row Matrix View Inside Triage Workspace -->
         <div id="fullMatrixBox" class="table-scroll hidden" style="margin-top: 12px;">
           <table class="guide-table">
             <thead>
@@ -300,7 +320,6 @@
       <section class="card decision-card">
         <h3>Analyst Triage Decision & Behavioral Attribution</h3>
         <div class="decision-grid">
-          <!-- Column 1: Triage Action & Scenario / Pattern Classification -->
           <div class="field-group">
             <label>1. Triage Classification Decision:</label>
             <div class="radio-row">
@@ -332,7 +351,6 @@
             </select>
           </div>
 
-          <!-- Column 2: Primary Indicator & Confidence -->
           <div class="field-group">
             <label for="primaryCue">3. Primary Behavioral Indicator (Strongest Driver):</label>
             <select id="primaryCue">
@@ -361,7 +379,6 @@
             </div>
           </div>
 
-          <!-- Column 3: Secondary / Co-Occurring Indicators (Multi-Select) -->
           <div class="field-group">
             <label>5. Secondary / Co-Occurring Indicators (Check all that apply):</label>
             <div class="checkbox-list">
@@ -386,7 +403,6 @@
           <button id="nextBtn" class="btn secondary">Next Case &rarr;</button>
         </div>
 
-        <!-- Immediate Training Feedback Box -->
         <div id="feedbackBox" class="feedback-box hidden"></div>
       </section>
     </section>
