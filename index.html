@@ -184,7 +184,7 @@
           <h3 id="timelineTitle">User Multi-Day Anomaly Score Timeline (Click Any Dot to Inspect Day)</h3>
           <span class="muted">
             <span style="color:#ef4444;">&#9679; Threat (TP/FN)</span> &nbsp;|&nbsp;
-            <span style="color:#f59e0b;">&#9679; False Alarm (FP)</span> &nbsp;|&nbsp;
+            <span style="color:#fdba74;">&#9679; False Alarm (FP)</span> &nbsp;|&nbsp;
             <span style="color:#3b82f6;">&#9679; Benign (TN)</span> &nbsp;|&nbsp;
             <span style="color:#10b981;">--- MAD Threshold</span>
           </span>
@@ -224,7 +224,7 @@
             <button class="btn small" onclick="openZoom('imgBeeswarm')">Zoom</button>
           </div>
           <div class="muted" style="margin-bottom: 8px; font-size: 0.82rem;">
-            Summarizes feature impact across all test days (<em>N</em>) for this user: red points = high feature values; blue points = low feature values.
+            Summarizes feature impact across all test days (<em>N</em>) for this user: orange/high points = high feature values; blue points = low feature values.
           </div>
           <div class="img-wrapper">
             <img id="imgBeeswarm" src="" alt="Global SHAP Beeswarm Plot" />
@@ -273,7 +273,7 @@
           <div class="muted" style="margin-bottom: 10px; font-size: 0.83rem; line-height: 1.45; background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
             <strong>SHAP Conservation Rule &mdash; <code>f(x) = E[f(X)] + &Sigma; &phi;<sub>j</sub></code>:</strong><br/>
             Start at expected baseline <code>E[f(X)]</code> (bottom) and sum all feature arrows to reach final surrogate threat probability <code>f(x)</code> (top).<br/>
-            <span style="color:#fca5a5;"><strong>Red (+&phi;)</strong></span> pushes toward <em>Threat</em>;
+            <span style="color:#fdba74;"><strong>Orange (+&phi;)</strong></span> pushes toward <em>Threat</em>;
             <span style="color:#93c5fd;"><strong>Blue (&minus;&phi;)</strong></span> pushes toward <em>Benign</em> (<code>f(x) &ge; 0.50</code> = flagged anomaly).
           </div>
           <div class="img-wrapper">
