@@ -4,7 +4,7 @@ let userMetricsMap = {};
 let currentIndex = 0;
 let trialStartTime = Date.now();
 let beeswarmOpenedCount = 0;
-let cmOpenedCount = 1; // Confusion matrix starts open by default
+let cmOpenedCount = 0;
 let playbookTabClicks = 0;
 const sessionLog = [];
 
@@ -302,6 +302,7 @@ function syncDiagnosticsLayout() {
   const cmCard = document.getElementById("cmCard");
   const beeswarmBtn = document.getElementById("toggleBeeswarmBtn");
 
+  // Hide SHAP Beeswarm option in Design A Only mode so SHAP never leaks into Z-score mode
   if (mode === "design_A") {
     beeswarmBtn.classList.add("hidden");
     beeswarmCard.classList.add("hidden");
@@ -347,8 +348,8 @@ function renderTrial() {
   if (!filteredTrials.length) return;
   const trial = filteredTrials[currentIndex];
   trialStartTime = Date.now();
-  beeswarmOpenedCount = document.getElementById("beeswarmCard").classList.contains("hidden") ? 0 : 1;
-  cmOpenedCount = document.getElementById("cmCard").classList.contains("hidden") ? 0 : 1;
+  beeswarmOpenedCount = 0;
+  cmOpenedCount = 0;
   playbookTabClicks = 0;
 
   document.getElementById("dateJumpSelect").value = String(currentIndex);
@@ -377,19 +378,21 @@ function renderTrial() {
       `Test Days=${m.Test_Days} (Attack Days=${m.Attack_Days_In_Test}) | ${summaryStr} | Surrogate Fidelity=${m.Surrogate_Fidelity}`;
   } else {
     document.getElementById("userMetricsBadge").textContent =
-      "Inspect user-wide detector confusion matrix and SHAP feature distributions.";
+      "Inspect user-wide SHAP feature distributions and detector confusion matrix.";
     document.getElementById("cmMetricsText").textContent =
       "Evaluates the unsupervised BiLSTM-AE MAD threshold across all test days for this user.";
   }
 
   renderUserTimeline(trial);
 
+  // Reset Q1–Q6 inputs
   document.querySelectorAll('input[name="decision"]').forEach((r) => (r.checked = false));
   document.getElementById("scenarioHypothesis").value = "";
-  document.getElementById("primaryCue").value = "";
-  document.querySelectorAll('input[name="secondaryCue"]').forEach((cb) => (cb.checked = false));
   document.getElementById("confidenceRange").value = 50;
   document.getElementById("confidenceVal").textContent = "50%";
+  document.getElementById("primaryCue").value = "";
+  document.querySelectorAll('input[name="secondaryCue"]').forEach((cb) => (cb.checked = false));
+  document.querySelectorAll('input[name="helpfulness"]').forEach((r) => (r.checked = false));
 
   const fb = document.getElementById("feedbackBox");
   fb.className = "feedback-box hidden";
@@ -413,18 +416,20 @@ function submitDecision() {
   const trial = filteredTrials[currentIndex];
   const selectedRadio = document.querySelector('input[name="decision"]:checked');
   if (!selectedRadio) {
-    alert("Please select a triage classification decision (or 'Prefer not to answer') before submitting.");
+    alert("Please complete Q1 (Triage Classification Decision) before submitting.");
     return;
   }
 
   const userDecision = selectedRadio.value;
   const scenarioHypothesis = document.getElementById("scenarioHypothesis").value || "unspecified";
+  const confidence = Number(document.getElementById("confidenceRange").value);
   const primaryCue = document.getElementById("primaryCue").value || "unspecified";
   const secondaryCuesList = Array.from(document.querySelectorAll('input[name="secondaryCue"]:checked')).map(
     (cb) => cb.value
   );
   const secondaryCuesStr = secondaryCuesList.length ? secondaryCuesList.join(";") : "none";
-  const confidence = Number(document.getElementById("confidenceRange").value);
+  const helpfulnessRadio = document.querySelector('input[name="helpfulness"]:checked');
+  const explanationHelpfulness = helpfulnessRadio ? helpfulnessRadio.value : "unspecified";
   const responseTimeSec = Number(((Date.now() - trialStartTime) / 1000).toFixed(2));
 
   const actualLabel = trial.alert_type === "TP" || trial.alert_type === "FN" ? "THREAT" : "BENIGN";
@@ -451,6 +456,7 @@ function submitDecision() {
     primary_cue: primaryCue,
     secondary_cues: secondaryCuesStr,
     secondary_cue_count: secondaryCuesList.length,
+    explanation_helpfulness: explanationHelpfulness,
     response_time_sec: responseTimeSec,
     anomaly_score: trial.anomaly_score,
     mad_threshold: trial.threshold
@@ -481,7 +487,7 @@ function submitDecision() {
       <strong>Correct Triage Assessment (${actualLabel})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
       <strong>Scenario Signature:</strong> ${scenGuide}<br/>
-      <strong>Logged Indicators:</strong> Primary = <code>${primaryCue}</code> | Secondary = <code>${secondaryCuesStr}</code> | Response Time = ${responseTimeSec}s
+      <strong>Logged Assessment:</strong> Primary = <code>${primaryCue}</code> | Secondary = <code>${secondaryCuesStr}</code> | Helpfulness = <code>${explanationHelpfulness}</code> | Time = ${responseTimeSec}s
     `;
   } else {
     fb.classList.add("incorrect");
@@ -489,7 +495,7 @@ function submitDecision() {
       <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel} (${trial.scenario})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
       <strong>Scenario Signature:</strong> ${scenGuide}<br/>
-      <strong>Tip:</strong> Switch between the scenario tabs below or inspect the user's Confusion Matrix and Global Beeswarm to calibrate threshold behavior.
+      <strong>Tip:</strong> Switch between the scenario tabs above or inspect the user's Confusion Matrix and Global Beeswarm to calibrate threshold behavior.
     `;
   }
 
