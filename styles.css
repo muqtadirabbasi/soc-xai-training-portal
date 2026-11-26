@@ -115,6 +115,15 @@ select, input[type="text"] {
   width: 300px;
 }
 
+/* Dark Red Badge for Z-Score High Deviation */
+.dark-red-pill {
+  color: #f87171;
+  background: #450a0a;
+  border: 1px solid #991b1b;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
 /* Interactive Multi-Day Timeline */
 .timeline-card {
   padding: 14px 18px;
@@ -124,47 +133,6 @@ select, input[type="text"] {
   width: 100%;
   overflow-x: auto;
   padding-bottom: 4px;
-}
-
-/* Z-Score & SHAP Legend Callout Boxes */
-.zscore-guide-box {
-  margin-bottom: 10px;
-  font-size: 0.83rem;
-  line-height: 1.5;
-  color: var(--muted);
-  background: var(--bg);
-  padding: 9px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-}
-
-.zscore-guide-box code {
-  background: var(--surface);
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  color: #e2e8f0;
-}
-
-.badge-darkred {
-  display: inline-block;
-  color: #fecaca;
-  background: #5c0a0a;
-  border: 1px solid #991b1b;
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
-.text-orange {
-  color: #fdba74;
-}
-
-.text-red {
-  color: #fca5a5;
-}
-
-.text-blue {
-  color: #93c5fd;
 }
 
 /* Scenario Playbook Table */
@@ -335,7 +303,7 @@ select, input[type="text"] {
 }
 
 .cm-wrapper {
-  max-width: 560px;
+  max-width: 620px;
   margin: 0 auto;
 }
 
@@ -393,28 +361,59 @@ select, input[type="text"] {
   cursor: zoom-in;
 }
 
-.decision-grid {
+/* Structured 2x3 Question Grid (Q1–Q6) */
+.decision-grid-6 {
   display: grid;
-  grid-template-columns: 1.25fr 1.15fr 1.2fr;
-  gap: 22px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   margin: 14px 0 18px 0;
 }
 
-@media (max-width: 1050px) {
-  .decision-grid {
+@media (max-width: 1150px) {
+  .decision-grid-6 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .decision-grid-6 {
     grid-template-columns: 1fr;
   }
 }
 
-.field-group {
+.q-card {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 0.9rem;
 }
 
-.sub-label {
-  margin-top: 10px;
+.q-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.q-num {
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.q-desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: -2px;
 }
 
 .radio-row {
@@ -432,6 +431,7 @@ select, input[type="text"] {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 0.86rem;
 }
 
 .radio-pill:hover {
@@ -442,36 +442,92 @@ select, input[type="text"] {
   color: var(--muted);
 }
 
+.slider-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 12px;
+  margin-top: 4px;
+}
+
+.slider-box input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+}
+
 .range-hints {
   display: flex;
   justify-content: space-between;
   font-size: 0.78rem;
   color: var(--muted);
+  margin-top: 6px;
 }
 
 .checkbox-list {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 10px 12px;
-  max-height: 235px;
+  padding: 8px 10px;
+  max-height: 155px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .checkbox-list label {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   cursor: pointer;
   padding: 2px 0;
 }
 
 .checkbox-list label:hover {
   color: #fff;
+}
+
+.likert-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.likert-pill {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.likert-pill:hover {
+  border-color: var(--primary);
+}
+
+.likert-pill span {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.likert-pill small {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.1;
+}
+
+.likert-pill:has(input:checked) {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.18);
 }
 
 .btn {
