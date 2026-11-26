@@ -13,25 +13,39 @@
       <h1>Insider Threat Anomaly Triage — Training & Calibration</h1>
     </div>
     <div class="controls">
-      <label for="designSelect">Explanation View:</label>
+      <label for="designSelect">View:</label>
       <select id="designSelect">
-        <option value="side_by_side">Side-by-Side (Design A + Design B)</option>
-        <option value="design_A">Design A Only (Statistical Z-Score Deviation)</option>
-        <option value="design_B">Design B Only (SHAP Feature Attribution)</option>
+        <option value="side_by_side">Side-by-Side (A + B)</option>
+        <option value="design_A">Design A (Z-Score)</option>
+        <option value="design_B">Design B (SHAP)</option>
       </select>
 
-      <label for="scenarioFilter">Scenario Filter:</label>
+      <label for="scenarioFilter">User / Scenario:</label>
       <select id="scenarioFilter">
-        <option value="ALL">All Cases</option>
+        <option value="ALL">All Users</option>
         <option value="S1">S1 (FZG0389 — WikiLeaks)</option>
         <option value="S2">S2 (TRC1838 — IP Theft)</option>
         <option value="S3">S3 (CWW1120 — Keylogger / Sabotage)</option>
         <option value="S4">S4 (ASH0298 — Lateral Snooping)</option>
         <option value="MIXED">Mixed Mode</option>
-        <option value="BENIGN">Benign Control / Benign Anomaly</option>
+        <option value="BENIGN">Benign Control / Anomaly</option>
       </select>
 
-      <button id="exportCsvBtn" class="btn secondary">Export Session Log (CSV)</button>
+      <label for="outcomeFilter">Day Filter:</label>
+      <select id="outcomeFilter">
+        <option value="ALL">All Days (Full Timeline)</option>
+        <option value="FLAGGED">Flagged Alerts Only (TP + FP)</option>
+        <option value="THREATS">Actual Threats Only (TP + FN)</option>
+        <option value="TP">True Positives (TP)</option>
+        <option value="FP">False Positives (FP)</option>
+        <option value="FN">False Negatives (FN)</option>
+        <option value="TN">True Negatives (TN)</option>
+      </select>
+
+      <label for="dateJumpSelect">Jump to Date:</label>
+      <select id="dateJumpSelect"></select>
+
+      <button id="exportCsvBtn" class="btn secondary">Export CSV</button>
     </div>
   </header>
 
@@ -40,10 +54,10 @@
     <section id="introCard" class="card intro-card">
       <h2>Analyst Calibration & Training Module</h2>
       <p>
-        Review daily behavioral telemetry flagged by an unsupervised Bidirectional LSTM Autoencoder.
-        Before starting, review the <strong>Scenario & Behavioral Indicator Playbook</strong> below.
-        During active triage, an interactive <strong>Scenario & Indicator Quick-Reference</strong> remains
-        embedded inside your triage workspace so you can verify primary and secondary cues without leaving the screen.
+        Review daily behavioral telemetry flagged by an unsupervised Bidirectional LSTM Autoencoder across each
+        user's full multi-month timeline. Before starting, review the <strong>Scenario & Behavioral Indicator Playbook</strong>
+        below. During active triage, an interactive <strong>Scenario & Indicator Quick-Reference</strong> and a clickable
+        <strong>Multi-Day Anomaly Timeline</strong> stay embedded directly inside your triage workspace.
       </p>
 
       <div class="participant-row" style="margin-bottom: 20px;">
@@ -163,8 +177,22 @@
 
     <!-- Active Triage Workspace -->
     <section id="workspace" class="hidden">
+      <!-- Interactive Multi-Day Anomaly Timeline -->
+      <div class="card timeline-card">
+        <div class="plot-header">
+          <h3 id="timelineTitle">User Multi-Day Anomaly Score Timeline (Click Any Dot to Inspect Day)</h3>
+          <span class="muted">
+            <span style="color:#ef4444;">&#9679; Threat (TP/FN)</span> &nbsp;|&nbsp;
+            <span style="color:#f59e0b;">&#9679; False Alarm (FP)</span> &nbsp;|&nbsp;
+            <span style="color:#3b82f6;">&#9679; Benign (TN)</span> &nbsp;|&nbsp;
+            <span style="color:#10b981;">--- MAD Threshold</span>
+          </span>
+        </div>
+        <div id="timelineContainer" class="timeline-scroll"></div>
+      </div>
+
       <div class="status-bar card">
-        <div><strong>Progress:</strong> <span id="progressText">1 / 1</span></div>
+        <div><strong>Filtered Position:</strong> <span id="progressText">1 / 1</span></div>
         <div><strong>Trial ID:</strong> <span id="trialIdText">—</span></div>
         <div><strong>User / Case:</strong> <span id="userText">—</span></div>
         <div><strong>Date:</strong> <span id="dateText">—</span></div>
