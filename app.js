@@ -1,8 +1,10 @@
 let allTrials = [];
 let filteredTrials = [];
+let userMetricsMap = {};
 let currentIndex = 0;
 let trialStartTime = Date.now();
 let beeswarmOpenedCount = 0;
+let cmOpenedCount = 0;
 let playbookTabClicks = 0;
 const sessionLog = [];
 
@@ -149,6 +151,27 @@ function toRelativePlotPath(rawPath, folderName) {
   return `./data/testing/${folderName}/${fileName}`;
 }
 
+async function loadMetricsCsv() {
+  try {
+    const res = await fetch("./data/metrics_summary.csv");
+    if (!res.ok) return;
+    const text = await res.text();
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return;
+    const headers = lines[0].split(",").map((h) => h.trim());
+    for (let i = 1; i < lines.length; i++) {
+      const vals = lines[i].split(",");
+      const obj = {};
+      headers.forEach((h, idx) => (obj[h] = (vals[idx] || "").trim()));
+      if (obj.Cert_ID) {
+        userMetricsMap[obj.Cert_ID.toUpperCase()] = obj;
+      }
+    }
+  } catch (err) {
+    console.warn("Optional metrics_summary.csv not loaded:", err);
+  }
+}
+
 async function loadManifest() {
   try {
     const res = await fetch("./data/testing_manifest.json");
@@ -158,13 +181,14 @@ async function loadManifest() {
       ...t,
       web_design_A: toRelativePlotPath(t.design_A_path, "design_A_zscore"),
       web_design_B: toRelativePlotPath(t.design_B_path, "design_B_shap"),
-      web_beeswarm: `./data/beeswarms/beeswarm_${t.scenario}_${t.cert_id}.png`
+      web_beeswarm: `./data/beeswarms/beeswarm_${t.scenario}_${t.cert_id}.png`,
+      web_cm: `./data/confusion_matrices/confusion_matrix_${t.scenario}_${t.cert_id}.png`
     }));
     filteredTrials = [...allTrials];
     populateDateJumpDropdown();
   } catch (err) {
     alert(
-      "Could not load ./data/testing_manifest.json. Ensure testing_manifest.json, beeswarms/, and testing/ folders are placed inside /data/."
+      "Could not load ./data/testing_manifest.json. Ensure testing_manifest.json, beeswarms/, confusion_matrices/, and testing/ folders are placed inside /data/."
     );
     console.error(err);
   }
@@ -271,32 +295,53 @@ function jumpToTrialId(trialId) {
   }
 }
 
+function syncDiagnosticsLayout() {
+  const mode = document.getElementById("designSelect").value;
+  const diagPanel = document.getElementById("diagnosticsPanel");
+  const beeswarmCard = document.getElementById("beeswarmCard");
+  const cmCard = document.getElementById("cmCard");
+  const beeswarmBtn = document.getElementById("toggleBeeswarmBtn");
+
+  // Hide SHAP Beeswarm option in Design A Only mode so SHAP never leaks into Z-score mode
+  if (mode === "design_A") {
+    beeswarmBtn.classList.add("hidden");
+    beeswarmCard.classList.add("hidden");
+    beeswarmBtn.textContent = "Show Global Beeswarm";
+  } else {
+    beeswarmBtn.classList.remove("hidden");
+  }
+
+  const showBee = !beeswarmCard.classList.contains("hidden");
+  const showCm = !cmCard.classList.contains("hidden");
+
+  if (!showBee && !showCm) {
+    diagPanel.classList.add("hidden");
+  } else {
+    diagPanel.classList.remove("hidden");
+    diagPanel.className = showBee && showCm ? "visual-grid two-col" : "visual-grid one-col";
+  }
+}
+
 function updateLayoutMode() {
   const mode = document.getElementById("designSelect").value;
   const grid = document.getElementById("visualGrid");
   const panelA = document.getElementById("panelA");
   const panelB = document.getElementById("panelB");
-  const beeswarmBar = document.getElementById("beeswarmToolbar");
-  const beeswarmPanel = document.getElementById("beeswarmPanel");
 
   if (mode === "side_by_side") {
     grid.className = "visual-grid two-col";
     panelA.classList.remove("hidden");
     panelB.classList.remove("hidden");
-    beeswarmBar.classList.remove("hidden");
   } else if (mode === "design_A") {
     grid.className = "visual-grid one-col";
     panelA.classList.remove("hidden");
     panelB.classList.add("hidden");
-    beeswarmBar.classList.add("hidden");
-    beeswarmPanel.classList.add("hidden");
-    document.getElementById("toggleBeeswarmBtn").textContent = "Show User Global Beeswarm";
   } else {
     grid.className = "visual-grid one-col";
     panelA.classList.add("hidden");
     panelB.classList.remove("hidden");
-    beeswarmBar.classList.remove("hidden");
   }
+  syncDiagnosticsLayout();
 }
 
 function renderTrial() {
@@ -304,6 +349,7 @@ function renderTrial() {
   const trial = filteredTrials[currentIndex];
   trialStartTime = Date.now();
   beeswarmOpenedCount = 0;
+  cmOpenedCount = 0;
   playbookTabClicks = 0;
 
   document.getElementById("dateJumpSelect").value = String(currentIndex);
@@ -317,12 +363,28 @@ function renderTrial() {
   document.getElementById("imgA").src = trial.web_design_A;
   document.getElementById("imgB").src = trial.web_design_B;
   document.getElementById("imgBeeswarm").src = trial.web_beeswarm;
+  document.getElementById("imgCm").src = trial.web_cm;
+
   document.getElementById("beeswarmTitle").textContent =
     `Global SHAP Beeswarm — Scenario ${trial.scenario} (${trial.cert_id}) Across All Test Days`;
+  document.getElementById("cmTitle").textContent =
+    `Confusion Matrix — Scenario ${trial.scenario} (${trial.cert_id})`;
+
+  const m = userMetricsMap[trial.cert_id.toUpperCase()];
+  if (m) {
+    const summaryStr = `TP=${m.TP}, FP=${m.FP}, TN=${m.TN}, FN=${m.FN} | Precision=${m.Precision}, Recall=${m.Recall}, F1=${m.F1_Score}, FPR=${m.FPR}`;
+    document.getElementById("userMetricsBadge").textContent = `${trial.scenario} (${trial.cert_id}): ${summaryStr}`;
+    document.getElementById("cmMetricsText").textContent =
+      `Test Days=${m.Test_Days} (Attack Days=${m.Attack_Days_In_Test}) | ${summaryStr} | Surrogate Fidelity=${m.Surrogate_Fidelity}`;
+  } else {
+    document.getElementById("userMetricsBadge").textContent =
+      "Inspect user-wide SHAP feature distributions and detector confusion matrix.";
+    document.getElementById("cmMetricsText").textContent =
+      "Evaluates the unsupervised BiLSTM-AE MAD threshold across all test days for this user.";
+  }
 
   renderUserTimeline(trial);
 
-  // Reset form inputs
   document.querySelectorAll('input[name="decision"]').forEach((r) => (r.checked = false));
   document.getElementById("scenarioHypothesis").value = "";
   document.getElementById("primaryCue").value = "";
@@ -375,6 +437,7 @@ function submitDecision() {
     timestamp_iso: new Date().toISOString(),
     view_mode: document.getElementById("designSelect").value,
     beeswarm_inspected_count: beeswarmOpenedCount,
+    cm_inspected_count: cmOpenedCount,
     playbook_tab_clicks: playbookTabClicks,
     trial_id: trial.trial_id,
     true_scenario: trial.scenario,
@@ -427,7 +490,7 @@ function submitDecision() {
       <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel} (${trial.scenario})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
       <strong>Scenario Signature:</strong> ${scenGuide}<br/>
-      <strong>Tip:</strong> Switch between the scenario tabs below to compare primary malicious indicators against secondary workload/timing cues.
+      <strong>Tip:</strong> Switch between the scenario tabs below or inspect the user's Confusion Matrix and Global Beeswarm to calibrate threshold behavior.
     `;
   }
 
@@ -468,7 +531,7 @@ function closeZoom() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadManifest();
+  await Promise.all([loadManifest(), loadMetricsCsv()]);
   renderPlaybookTab("S1");
   populateFullMatrixTable();
 
@@ -506,10 +569,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("toggleBeeswarmBtn").addEventListener("click", (e) => {
-    const panel = document.getElementById("beeswarmPanel");
-    const isHidden = panel.classList.toggle("hidden");
+    const card = document.getElementById("beeswarmCard");
+    const isHidden = card.classList.toggle("hidden");
     if (!isHidden) beeswarmOpenedCount++;
-    e.target.textContent = isHidden ? "Show User Global Beeswarm" : "Hide User Global Beeswarm";
+    e.target.textContent = isHidden ? "Show Global Beeswarm" : "Hide Global Beeswarm";
+    syncDiagnosticsLayout();
+  });
+
+  document.getElementById("toggleCmBtn").addEventListener("click", (e) => {
+    const card = document.getElementById("cmCard");
+    const isHidden = card.classList.toggle("hidden");
+    if (!isHidden) cmOpenedCount++;
+    e.target.textContent = isHidden ? "Show Confusion Matrix" : "Hide Confusion Matrix";
+    syncDiagnosticsLayout();
   });
 
   document.getElementById("confidenceRange").addEventListener("input", (e) => {
@@ -538,4 +610,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("imgA").addEventListener("click", () => openZoom("imgA"));
   document.getElementById("imgB").addEventListener("click", () => openZoom("imgB"));
   document.getElementById("imgBeeswarm").addEventListener("click", () => openZoom("imgBeeswarm"));
+  document.getElementById("imgCm").addEventListener("click", () => openZoom("imgCm"));
 });
