@@ -9,11 +9,17 @@
       "headers": {
         "Cache-Control": "no-cache"
       }
+    },
+    {
+      "route": "/data/metrics_summary.csv",
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
     }
   ],
   "mimeTypes": {
     ".json": "application/json",
-    ".png": "image/png",
-    ".csv": "text/csv"
+    ".csv": "text/csv",
+    ".png": "image/png"
   }
 }
