@@ -4,7 +4,7 @@ let userMetricsMap = {};
 let currentIndex = 0;
 let trialStartTime = Date.now();
 let beeswarmOpenedCount = 0;
-let cmOpenedCount = 0;
+let cmOpenedCount = 1; // Confusion matrix starts open by default
 let playbookTabClicks = 0;
 const sessionLog = [];
 
@@ -302,7 +302,6 @@ function syncDiagnosticsLayout() {
   const cmCard = document.getElementById("cmCard");
   const beeswarmBtn = document.getElementById("toggleBeeswarmBtn");
 
-  // Hide SHAP Beeswarm option in Design A Only mode so SHAP never leaks into Z-score mode
   if (mode === "design_A") {
     beeswarmBtn.classList.add("hidden");
     beeswarmCard.classList.add("hidden");
@@ -348,8 +347,8 @@ function renderTrial() {
   if (!filteredTrials.length) return;
   const trial = filteredTrials[currentIndex];
   trialStartTime = Date.now();
-  beeswarmOpenedCount = 0;
-  cmOpenedCount = 0;
+  beeswarmOpenedCount = document.getElementById("beeswarmCard").classList.contains("hidden") ? 0 : 1;
+  cmOpenedCount = document.getElementById("cmCard").classList.contains("hidden") ? 0 : 1;
   playbookTabClicks = 0;
 
   document.getElementById("dateJumpSelect").value = String(currentIndex);
@@ -378,7 +377,7 @@ function renderTrial() {
       `Test Days=${m.Test_Days} (Attack Days=${m.Attack_Days_In_Test}) | ${summaryStr} | Surrogate Fidelity=${m.Surrogate_Fidelity}`;
   } else {
     document.getElementById("userMetricsBadge").textContent =
-      "Inspect user-wide SHAP feature distributions and detector confusion matrix.";
+      "Inspect user-wide detector confusion matrix and SHAP feature distributions.";
     document.getElementById("cmMetricsText").textContent =
       "Evaluates the unsupervised BiLSTM-AE MAD threshold across all test days for this user.";
   }
