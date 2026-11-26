@@ -212,12 +212,12 @@
         </div>
         <div class="action-row">
           <button id="toggleBeeswarmBtn" class="btn secondary">Show Global Beeswarm</button>
-          <button id="toggleCmBtn" class="btn secondary">Show Confusion Matrix</button>
+          <button id="toggleCmBtn" class="btn secondary">Hide Confusion Matrix</button>
         </div>
       </div>
 
-      <!-- Collapsible User-Level Diagnostics Grid (Beeswarm + Confusion Matrix) -->
-      <div id="diagnosticsPanel" class="visual-grid two-col hidden">
+      <!-- User-Level Diagnostics Grid (Confusion Matrix Open by Default) -->
+      <div id="diagnosticsPanel" class="visual-grid one-col">
         <div id="beeswarmCard" class="card plot-card hidden">
           <div class="plot-header">
             <h3 id="beeswarmTitle">Global SHAP Beeswarm — User Behavioral Distribution</h3>
@@ -231,7 +231,7 @@
           </div>
         </div>
 
-        <div id="cmCard" class="card plot-card hidden">
+        <div id="cmCard" class="card plot-card">
           <div class="plot-header">
             <h3 id="cmTitle">Detector Confusion Matrix — User Evaluation</h3>
             <button class="btn small" onclick="openZoom('imgCm')">Zoom</button>
@@ -252,10 +252,10 @@
             <h3>Design A — Standardized Baseline Deviation (Z-Score)</h3>
             <button class="btn small" onclick="openZoom('imgA')">Zoom</button>
           </div>
-          <div class="muted" style="margin-bottom: 10px; font-size: 0.82rem; line-height: 1.4;">
+          <div class="muted" style="margin-bottom: 10px; font-size: 0.82rem; line-height: 1.45;">
             <strong>Z-Score Criteria:</strong>
-            <span style="color:#fca5a5;">Red (&ge; +2.0&sigma;)</span> = strong spike above 96-day baseline;
-            <span style="color:#fdba74;">Orange (0 to +2.0&sigma;)</span> = mild elevation (rare zero-baseline events like WikiLeaks, Keylogger, or Unauthorized Login equal +1.0&sigma; per event);
+            <span style="color:#fca5a5;">Red (&ge; +2.0&sigma;)</span> = statistically strong spike above 96-day baseline;
+            <span style="color:#fdba74;">Orange (0 to +2.0&sigma;)</span> = mild elevation &mdash; <strong>anomalous when <code>base = 0.0</code></strong> on security-critical indicators (e.g., 1 occurrence of WikiLeaks, Keylogger, Unauthorized Login, Decoy File, or Home/Competitor Email equals <code>+1.0&sigma;</code>), but normal variance on routine workload counters with <code>base &gt; 0</code>;
             <span style="color:#93c5fd;">Blue (&le; 0&sigma;)</span> = normal or below baseline.
           </div>
           <div class="img-wrapper">
@@ -268,7 +268,7 @@
             <h3>Design B — SHAP Feature Attribution Waterfall</h3>
             <button class="btn small" onclick="openZoom('imgB')">Zoom</button>
           </div>
-          <div class="muted" style="margin-bottom: 10px; font-size: 0.82rem; line-height: 1.4;">
+          <div class="muted" style="margin-bottom: 10px; font-size: 0.82rem; line-height: 1.45;">
             <strong>SHAP Conservation Rule &mdash; <code>f(x) = E[f(X)] + &Sigma; &phi;<sub>j</sub></code>:</strong>
             Start at expected baseline <code>E[f(X)]</code> (bottom) and sum all arrows to reach final threat probability <code>f(x)</code> (top).
             <span style="color:#fca5a5;">Red (+&phi;)</span> pushes toward <em>Threat</em>;
