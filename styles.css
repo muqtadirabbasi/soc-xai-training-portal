@@ -293,6 +293,11 @@ select, input[type="text"] {
   margin: 0 auto;
 }
 
+.cm-wrapper {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
 .muted {
   color: var(--muted);
   font-size: 0.84rem;
