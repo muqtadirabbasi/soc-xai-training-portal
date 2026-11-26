@@ -495,7 +495,7 @@ function submitDecision() {
       <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel} (${trial.scenario})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
       <strong>Scenario Signature:</strong> ${scenGuide}<br/>
-      <strong>Tip:</strong> Switch between the scenario tabs above or inspect the user's Confusion Matrix and Global Beeswarm to calibrate threshold behavior.
+      <strong>Tip:</strong> Open the <em>Scenario Reference</em> or inspect the user's Confusion Matrix and Global Beeswarm to calibrate threshold behavior.
     `;
   }
 
@@ -539,6 +539,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   await Promise.all([loadManifest(), loadMetricsCsv()]);
   renderPlaybookTab("S1");
   populateFullMatrixTable();
+
+  document.getElementById("toggleInlinePlaybookBtn").addEventListener("click", (e) => {
+    const body = document.getElementById("inlinePlaybookBody");
+    const matrixBtn = document.getElementById("toggleFullMatrixBtn");
+    const isHidden = body.classList.toggle("hidden");
+    e.target.textContent = isHidden ? "Show Scenario Reference" : "Hide Scenario Reference";
+    matrixBtn.classList.toggle("hidden", isHidden);
+    if (!isHidden) playbookTabClicks++;
+  });
 
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
