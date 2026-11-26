@@ -338,6 +338,10 @@
       border-color: #9f1239;
     }
     .dashboard-btn.design-b-btn:hover { background: #9f1239; }
+    .dashboard-btn.completed {
+      background: #065f46;
+      border-color: #047857;
+    }
     .dashboard-btn:disabled {
       background: #1e293b;
       border-color: #334155;
@@ -571,7 +575,7 @@
       padding: 16px;
       display: grid;
       grid-template-columns: 1.48fr 1fr;
-      gap: 16px;
+      gap: 18px;
     }
     @media (max-width: 1120px) {
       .triage-modal-box { grid-template-columns: 1fr; }
@@ -707,48 +711,30 @@
       background: #1e293b;
       padding: 9px 11px;
       border-radius: 6px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       font-size: 0.74rem;
-      border: 1px solid #334155;
     }
     .score-strip span { color: #94a3b8; display: block; }
     .score-strip strong { display: block; font-size: 0.88rem; color: #ffffff; margin-top: 2px; }
 
-    /* Distinct Question Step Cards with Clear Vertical Separation */
+    /* Clearly separated Q1–Q6 blocks */
     .form-section {
-      background: #131d33;
-      border: 1px solid #293548;
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .form-section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 12px;
+      padding-bottom: 4px;
     }
     .form-section label.sec-lbl {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 0.8rem;
+      display: block;
+      font-size: 0.81rem;
       font-weight: 700;
       color: #f8fafc;
       margin-bottom: 8px;
     }
-    .q-pill {
-      display: inline-block;
-      background: rgba(124, 58, 237, 0.25);
-      border: 1px solid #7c3aed;
-      color: #c4b5fd;
-      font-size: 0.68rem;
-      font-weight: 800;
-      padding: 1px 6px;
-      border-radius: 4px;
-      letter-spacing: 0.03em;
-    }
-    .q-helper {
-      font-size: 0.71rem;
-      color: #94a3b8;
-      margin-bottom: 7px;
-      line-height: 1.35;
-    }
-
     .choice-btn-group {
       display: flex;
       flex-direction: column;
@@ -760,7 +746,7 @@
       gap: 8px;
       background: #1e293b;
       border: 1px solid #334155;
-      padding: 7px 10px;
+      padding: 7px 11px;
       border-radius: 6px;
       font-size: 0.78rem;
       cursor: pointer;
@@ -774,7 +760,7 @@
       border: 1px solid #475569;
       color: #ffffff;
       border-radius: 6px;
-      padding: 7px 10px;
+      padding: 8px 10px;
       font-family: inherit;
       font-size: 0.78rem;
       outline: none;
@@ -795,7 +781,7 @@
     .range-hints {
       display: flex;
       justify-content: space-between;
-      font-size: 0.69rem;
+      font-size: 0.7rem;
       color: #94a3b8;
       margin-top: 4px;
     }
@@ -803,7 +789,7 @@
     /* Compact 1-5 Likert Bar for Explanation Helpfulness */
     .likert-bar {
       display: flex;
-      gap: 5px;
+      gap: 6px;
       flex-wrap: wrap;
     }
     .likert-bar label {
@@ -1103,7 +1089,7 @@
         </div>
       </div>
 
-      <!-- Right Pane: Distinct Step Cards for Q1–Q6 with Clear Visual Gaps -->
+      <!-- Right Pane: Clearly Spaced Q1–Q6 Cognitive Sequence -->
       <div class="triage-form-pane">
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -1116,7 +1102,7 @@
 
           <!-- Q1: Triage Verdict -->
           <div class="form-section">
-            <label class="sec-lbl"><span class="q-pill">Q1</span> Triage Classification Decision:</label>
+            <label class="sec-lbl">1. Triage Classification Decision:</label>
             <div class="choice-btn-group">
               <label class="choice-opt">
                 <input type="radio" name="decision" value="THREAT">
@@ -1135,8 +1121,7 @@
 
           <!-- Q2: Primary Behavioral Indicator -->
           <div class="form-section">
-            <label class="sec-lbl" for="primaryCue"><span class="q-pill">Q2</span> Primary Behavioral Indicator (Strongest Driver):</label>
-            <div class="q-helper">Select the single strongest feature driving the alert. If Night/Evening/Weekend activity is the top bar, choose <em>After-Hours (Evening / Night) / Weekend Shift</em>.</div>
+            <label class="sec-lbl" for="primaryCue">2. Primary Behavioral Indicator (Strongest Driver):</label>
             <select id="primaryCue" class="triage-select">
               <option value="">-- Select primary indicator --</option>
               <option value="wikileaks_access">WikiLeaks Access</option>
@@ -1147,16 +1132,15 @@
               <option value="unauthorized_pc_login">Unauthorized / Non-Primary PC Logon</option>
               <option value="file_search_decoy">Decoy / Sensitive File Search &amp; Access</option>
               <option value="home_email">Personal / Home Email Exfiltration</option>
-              <option value="after_hours_weekend_departure">After-Hours (Evening / Night) / Weekend Shift or Sudden Departure</option>
-              <option value="workload_timing_spike">Routine Daytime Workload / Inter-Activity Timing Spike</option>
+              <option value="after_hours_departure">After-Hours (Evening / Night / Weekend) / Sudden Departure</option>
+              <option value="workload_timing_spike">Routine Workload / Inter-Activity Timing Spike</option>
               <option value="prefer_not_to_answer">Prefer not to answer</option>
             </select>
           </div>
 
           <!-- Q3: Secondary / Co-Occurring Indicators -->
           <div class="form-section">
-            <label class="sec-lbl"><span class="q-pill">Q3</span> Secondary / Co-Occurring Indicators:</label>
-            <div class="q-helper">Check all supporting cues present on the chart (including <em>After-Hours (Evening / Night) / Weekend Shift</em> when co-occurring with exfiltration).</div>
+            <label class="sec-lbl">3. Secondary / Co-Occurring Indicators (Check all additional cues):</label>
             <div class="checkbox-grid" id="secondaryCueGroup">
               <label><input type="checkbox" name="secondaryCue" value="wikileaks_access"> WikiLeaks Access</label>
               <label><input type="checkbox" name="secondaryCue" value="thumb_removable_drive"> Thumb / Removable Drive</label>
@@ -1166,16 +1150,16 @@
               <label><input type="checkbox" name="secondaryCue" value="unauthorized_pc_login"> Unauthorized PC Login</label>
               <label><input type="checkbox" name="secondaryCue" value="file_search_decoy"> Decoy / Sensitive File Access</label>
               <label><input type="checkbox" name="secondaryCue" value="home_email"> Home Email (Gmail/Yahoo/Hotmail)</label>
-              <label><input type="checkbox" name="secondaryCue" value="after_hours_weekend"> After-Hours (Evening / Night) / Weekend Shift</label>
+              <label><input type="checkbox" name="secondaryCue" value="after_hours_weekend"> After-Hours (Evening / Night) / Weekend</label>
               <label><input type="checkbox" name="secondaryCue" value="sudden_departure"> Sudden Departure Flag</label>
-              <label><input type="checkbox" name="secondaryCue" value="workload_timing_spike"> Daytime Workload / Timing Variance</label>
+              <label><input type="checkbox" name="secondaryCue" value="workload_timing_spike"> Workload / Timing Variance</label>
               <label><input type="checkbox" name="secondaryCue" value="prefer_not_to_answer"> Prefer not to answer</label>
             </div>
           </div>
 
           <!-- Q4: Suspected Scenario / Pattern Type -->
           <div class="form-section">
-            <label class="sec-lbl" for="scenarioHypothesis"><span class="q-pill">Q4</span> Suspected Scenario / Pattern Type:</label>
+            <label class="sec-lbl" for="scenarioHypothesis">4. Suspected Scenario / Pattern Type:</label>
             <select id="scenarioHypothesis" class="triage-select">
               <option value="">-- Select scenario / pattern type --</option>
               <option value="S1_wikileaks">Scenario 1: WikiLeaks Exfiltration (USB + WikiLeaks + After-Hours)</option>
@@ -1183,17 +1167,17 @@
               <option value="S3_keylogger_sabotage">Scenario 3: Keylogger / Mass Email Sabotage</option>
               <option value="S4_lateral_home_email">Scenario 4: Unauthorized PC Login + File Search + Home Email</option>
               <option value="MIXED_MODE">Mixed Mode: Multiple Co-Occurring Attack Scenarios</option>
-              <option value="BENIGN_ANOMALY">Benign Anomaly: High Workload / After-Hours / Timing Shift (Non-Malicious)</option>
+              <option value="BENIGN_ANOMALY">Benign Anomaly: High Workload / Timing Shift (Non-Malicious)</option>
               <option value="NORMAL_BASELINE">Normal Baseline Activity</option>
               <option value="prefer_not_to_answer">Prefer not to answer</option>
             </select>
           </div>
 
-          <!-- Q5: Overall Decision Confidence (0% - 100%) -->
+          <!-- Q5: Overall Decision Confidence (0% - 100% + derived 1-5 calibration score) -->
           <div class="form-section">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
               <label class="sec-lbl" for="confidenceRange" style="margin:0;">
-                <span class="q-pill">Q5</span> Overall Decision Confidence: <strong id="confidenceVal" style="color:#a78bfa;">50%</strong>
+                5. Overall Decision Confidence: <strong id="confidenceVal" style="color:#a78bfa;">50%</strong>
               </label>
               <label style="font-size:0.73rem;color:#94a3b8;cursor:pointer;display:flex;align-items:center;gap:4px;">
                 <input type="checkbox" id="confPreferNot" style="accent-color:#7c3aed;"> Prefer not to answer
@@ -1209,9 +1193,9 @@
             </div>
           </div>
 
-          <!-- Q6: Explanation Helpfulness (1-5 Likert per case) -->
-          <div class="form-section" style="margin-bottom:10px;">
-            <label class="sec-lbl"><span class="q-pill">Q6</span> Explanation Helpfulness (1 = Not Helpful, 5 = Extremely Helpful):</label>
+          <!-- Q6: Explanation Helpfulness (Variable #14: 1-5 Likert per case) -->
+          <div class="form-section">
+            <label class="sec-lbl">6. Explanation Helpfulness (1 = Not Helpful, 5 = Extremely Helpful):</label>
             <div class="likert-bar" id="helpfulnessLikert">
               <label><input type="radio" name="helpfulness" value="1">1</label>
               <label><input type="radio" name="helpfulness" value="2">2</label>
@@ -1224,8 +1208,8 @@
         </div>
 
         <div>
-          <div id="triageValidationMsg" style="color:#f87171;font-size:0.77rem;margin-bottom:6px;display:none;">
-            Please complete Q1, Q2, Q4, and Q6 (or select "Prefer not to answer") before saving.
+          <div id="triageValidationMsg" style="color:#f87171;font-size:0.77rem;margin-bottom:8px;display:none;">
+            Please complete Questions 1, 2, 4, and 6 (or select "Prefer not to answer") before saving.
           </div>
           <button type="button" id="btnSaveTriage" class="passkey-btn passkey-submit" style="width:100%;">
             Save &amp; Lock Triage Decision
@@ -1440,9 +1424,7 @@
     function syncSecondaryExclusions() {
       const selectedPrimary = document.getElementById('primaryCue').value;
       document.querySelectorAll('input[name="secondaryCue"]').forEach(cb => {
-        const isSame =
-          (selectedPrimary && selectedPrimary !== 'prefer_not_to_answer' && cb.value === selectedPrimary) ||
-          (selectedPrimary === 'after_hours_weekend_departure' && (cb.value === 'after_hours_weekend' || cb.value === 'sudden_departure'));
+        const isSame = selectedPrimary && selectedPrimary !== 'prefer_not_to_answer' && cb.value === selectedPrimary;
         if (isSame) {
           cb.checked = false;
           cb.disabled = true;
