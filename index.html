@@ -57,8 +57,8 @@
         Review daily behavioral telemetry flagged by an unsupervised Bidirectional LSTM Autoencoder across each
         user's full multi-month timeline. Before starting, review the <strong>Scenario & Behavioral Indicator Playbook</strong>
         below. During active triage, an interactive <strong>Scenario & Indicator Quick-Reference</strong>, clickable
-        <strong>Multi-Day Anomaly Timeline</strong>, <strong>Detector Confusion Matrix</strong>, and
-        <strong>Global SHAP Beeswarm</strong> stay accessible inside your workspace.
+        <strong>Multi-Day Anomaly Timeline</strong>, <strong>Global SHAP Beeswarm</strong>, and
+        <strong>Detector Confusion Matrix</strong> remain accessible inside your workspace.
       </p>
 
       <div class="participant-row" style="margin-bottom: 20px;">
@@ -204,21 +204,34 @@
         <div><strong>Session Accuracy:</strong> <span id="accuracyText">N/A</span></div>
       </div>
 
-      <!-- User-Level Diagnostics Toolbar: Confusion Matrix (Open by Default) + Global Beeswarm -->
+      <!-- User-Level Diagnostics Toolbar: Global Beeswarm + Confusion Matrix (Both Hidden by Default) -->
       <div id="userDiagnosticsBar" class="card beeswarm-bar">
         <div>
           <strong>User-Level Model Diagnostics:</strong>
-          <span id="userMetricsBadge" class="muted">Inspect user-wide detector confusion matrix and SHAP feature distributions.</span>
+          <span id="userMetricsBadge" class="muted">Inspect user-wide SHAP feature distributions and detector confusion matrix.</span>
         </div>
         <div class="action-row">
-          <button id="toggleCmBtn" class="btn secondary">Hide Confusion Matrix</button>
           <button id="toggleBeeswarmBtn" class="btn secondary">Show Global Beeswarm</button>
+          <button id="toggleCmBtn" class="btn secondary">Show Confusion Matrix</button>
         </div>
       </div>
 
-      <!-- User-Level Diagnostics Grid (Confusion Matrix Open by Default) -->
-      <div id="diagnosticsPanel" class="visual-grid one-col">
-        <div id="cmCard" class="card plot-card">
+      <!-- Collapsible User-Level Diagnostics Grid (Hidden by Default) -->
+      <div id="diagnosticsPanel" class="visual-grid two-col hidden">
+        <div id="beeswarmCard" class="card plot-card hidden">
+          <div class="plot-header">
+            <h3 id="beeswarmTitle">Global SHAP Beeswarm — User Behavioral Distribution</h3>
+            <button class="btn small" onclick="openZoom('imgBeeswarm')">Zoom</button>
+          </div>
+          <div class="muted" style="margin-bottom: 8px; font-size: 0.82rem;">
+            Summarizes feature impact across all test days (<em>N</em>) for this user: red points = high feature values; blue points = low feature values.
+          </div>
+          <div class="img-wrapper">
+            <img id="imgBeeswarm" src="" alt="Global SHAP Beeswarm Plot" />
+          </div>
+        </div>
+
+        <div id="cmCard" class="card plot-card hidden">
           <div class="plot-header">
             <h3 id="cmTitle">Detector Confusion Matrix — User Evaluation</h3>
             <button class="btn small" onclick="openZoom('imgCm')">Zoom</button>
@@ -230,19 +243,6 @@
             <img id="imgCm" src="" alt="Confusion Matrix Heatmap" />
           </div>
         </div>
-
-        <div id="beeswarmCard" class="card plot-card hidden">
-          <div class="plot-header">
-            <h3 id="beeswarmTitle">Global SHAP Beeswarm — User Behavioral Distribution</h3>
-            <button class="btn small" onclick="openZoom('imgBeeswarm')">Zoom</button>
-          </div>
-          <div class="muted" style="margin-bottom: 8px; font-size: 0.82rem;">
-            Summarizes feature impact across all test days (<em>N</em>) for this user: red points = high feature values; blue points = low feature values.
-          </div>
-          <div class="img-wrapper beeswarm-wrapper">
-            <img id="imgBeeswarm" src="" alt="Global SHAP Beeswarm Plot" />
-          </div>
-        </div>
       </div>
 
       <!-- Daily Stimulus Visualizations -->
@@ -252,13 +252,13 @@
             <h3>Design A — Standardized Baseline Deviation (Z-Score)</h3>
             <button class="btn small" onclick="openZoom('imgA')">Zoom</button>
           </div>
-          <div class="zscore-guide-box">
+          <div class="muted" style="margin-bottom: 10px; font-size: 0.83rem; line-height: 1.45; background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
             <strong>How to Read Z-Score Bars:</strong><br/>
-            &bull; <span class="badge-darkred"><strong>Dark Red (&ge; +2.0&sigma;) &mdash; High Deviation:</strong></span> Major jump above the user's 96-day baseline.<br/>
-            &bull; <span class="text-orange"><strong>Orange (0 to +2.0&sigma;) &mdash; Check <code>base</code> Value:</strong></span>
+            &bull; <span class="dark-red-pill"><strong>Dark Red (&ge; +2.0&sigma;) &mdash; High Deviation:</strong></span> Major jump above the user's 96-day baseline.<br/>
+            &bull; <span style="color:#fdba74;"><strong>Orange (0 to +2.0&sigma;) &mdash; Check <code>base</code> Value:</strong></span>
               <strong>Anomalous if <code>base = 0.0</code></strong> (first-time rare event such as WikiLeaks, Keylogger, or Unauthorized Login equals <code>+1.0&sigma;</code>);
               <strong>Mild deviation if <code>base &gt; 0</code></strong> (normal day-to-day variance).<br/>
-            &bull; <span class="text-blue"><strong>Blue (&le; 0.0&sigma;) &mdash; Normal:</strong></span> At or below the user's typical daily average.
+            &bull; <span style="color:#93c5fd;"><strong>Blue (&le; 0.0&sigma;) &mdash; Normal:</strong></span> At or below the user's typical daily average.
           </div>
           <div class="img-wrapper">
             <img id="imgA" src="" alt="Design A Z-Score Plot" />
@@ -270,11 +270,11 @@
             <h3>Design B — SHAP Feature Attribution Waterfall</h3>
             <button class="btn small" onclick="openZoom('imgB')">Zoom</button>
           </div>
-          <div class="zscore-guide-box">
+          <div class="muted" style="margin-bottom: 10px; font-size: 0.83rem; line-height: 1.45; background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
             <strong>SHAP Conservation Rule &mdash; <code>f(x) = E[f(X)] + &Sigma; &phi;<sub>j</sub></code>:</strong><br/>
-            Start at expected baseline <code>E[f(X)]</code> (bottom) and sum all feature arrows to reach final surrogate threat probability <code>f(x)</code> (top).
-            <span class="text-red"><strong>Red (+&phi;)</strong></span> pushes toward <em>Threat</em>;
-            <span class="text-blue"><strong>Blue (&minus;&phi;)</strong></span> pushes toward <em>Benign</em> (<code>f(x) &ge; 0.50</code> = flagged anomaly).
+            Start at expected baseline <code>E[f(X)]</code> (bottom) and sum all feature arrows to reach final surrogate threat probability <code>f(x)</code> (top).<br/>
+            <span style="color:#fca5a5;"><strong>Red (+&phi;)</strong></span> pushes toward <em>Threat</em>;
+            <span style="color:#93c5fd;"><strong>Blue (&minus;&phi;)</strong></span> pushes toward <em>Benign</em> (<code>f(x) &ge; 0.50</code> = flagged anomaly).
           </div>
           <div class="img-wrapper">
             <img id="imgB" src="" alt="Design B SHAP Plot" />
@@ -318,12 +318,17 @@
         </div>
       </section>
 
-      <!-- Analyst Triage Response Panel -->
+      <!-- Analyst Triage Response Panel (Structured 2x3 Grid: Q1–Q6) -->
       <section class="card decision-card">
-        <h3>Analyst Triage Decision & Behavioral Attribution</h3>
-        <div class="decision-grid">
-          <div class="field-group">
-            <label>1. Triage Classification Decision:</label>
+        <div class="plot-header">
+          <h3>Analyst Triage Assessment &amp; Explanation Evaluation</h3>
+          <span class="muted">Complete Q1&ndash;Q6 for each reviewed day before checking ground truth.</span>
+        </div>
+
+        <div class="decision-grid-6">
+          <!-- Q1: Triage Classification Decision -->
+          <div class="q-card">
+            <label class="q-title"><span class="q-num">Q1</span> Triage Classification Decision</label>
             <div class="radio-row">
               <label class="radio-pill">
                 <input type="radio" name="decision" value="THREAT" />
@@ -338,8 +343,12 @@
                 Prefer not to answer
               </label>
             </div>
+          </div>
 
-            <label for="scenarioHypothesis" class="sub-label">2. Suspected Scenario / Pattern Type:</label>
+          <!-- Q2: Suspected Scenario / Pattern Type -->
+          <div class="q-card">
+            <label class="q-title" for="scenarioHypothesis"><span class="q-num">Q2</span> Suspected Scenario / Pattern Type</label>
+            <p class="q-desc">Select the behavioral pattern that best characterizes this daily profile.</p>
             <select id="scenarioHypothesis">
               <option value="">-- Select scenario / pattern type --</option>
               <option value="S1_wikileaks">Scenario 1: WikiLeaks Exfiltration (USB + WikiLeaks + After-Hours)</option>
@@ -353,8 +362,26 @@
             </select>
           </div>
 
-          <div class="field-group">
-            <label for="primaryCue">3. Primary Behavioral Indicator (Strongest Driver):</label>
+          <!-- Q3: Decision Confidence -->
+          <div class="q-card">
+            <label class="q-title" for="confidenceRange">
+              <span class="q-num">Q3</span> Decision Confidence: <strong id="confidenceVal" style="color:#60a5fa;">50%</strong>
+            </label>
+            <p class="q-desc">Rate your confidence in your Q1 triage classification.</p>
+            <div class="slider-box">
+              <input type="range" id="confidenceRange" min="0" max="100" step="5" value="50" />
+              <div class="range-hints">
+                <span>0% (Guess)</span>
+                <span>50% (Moderate)</span>
+                <span>100% (Certain)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q4: Primary Behavioral Indicator -->
+          <div class="q-card">
+            <label class="q-title" for="primaryCue"><span class="q-num">Q4</span> Primary Behavioral Indicator</label>
+            <p class="q-desc">Identify the single strongest feature driving your assessment.</p>
             <select id="primaryCue">
               <option value="">-- Select primary indicator --</option>
               <option value="wikileaks_access">WikiLeaks Access (S1)</option>
@@ -369,20 +396,12 @@
               <option value="workload_timing_spike">Routine Workload / Inter-Activity Timing Spike (Benign Anomaly)</option>
               <option value="prefer_not_to_answer">Prefer not to answer</option>
             </select>
-
-            <label for="confidenceRange" class="sub-label">
-              4. Decision Confidence: <strong id="confidenceVal">50%</strong>
-            </label>
-            <input type="range" id="confidenceRange" min="0" max="100" step="5" value="50" />
-            <div class="range-hints">
-              <span>0% (Guess)</span>
-              <span>50%</span>
-              <span>100% (Certain)</span>
-            </div>
           </div>
 
-          <div class="field-group">
-            <label>5. Secondary / Co-Occurring Indicators (Check all that apply):</label>
+          <!-- Q5: Secondary / Co-Occurring Indicators -->
+          <div class="q-card">
+            <label class="q-title"><span class="q-num">Q5</span> Secondary / Co-Occurring Indicators</label>
+            <p class="q-desc">Check all supporting cues observed alongside the primary driver.</p>
             <div class="checkbox-list">
               <label><input type="checkbox" name="secondaryCue" value="wikileaks_access" /> WikiLeaks Access</label>
               <label><input type="checkbox" name="secondaryCue" value="thumb_removable_drive" /> Thumb / Removable Drive</label>
@@ -397,10 +416,47 @@
               <label><input type="checkbox" name="secondaryCue" value="workload_timing_spike" /> Workload / Timing Variance</label>
             </div>
           </div>
+
+          <!-- Q6: Explanation Helpfulness (1-5 Likert + Prefer not to answer) -->
+          <div class="q-card">
+            <label class="q-title"><span class="q-num">Q6</span> Explanation Helpfulness</label>
+            <p class="q-desc">1 = Not Helpful &nbsp;|&nbsp; 5 = Extremely Helpful</p>
+            <div class="likert-row" role="radiogroup" aria-label="Explanation Helpfulness">
+              <label class="likert-pill">
+                <input type="radio" name="helpfulness" value="1" />
+                <span>1</span>
+                <small>Not Helpful</small>
+              </label>
+              <label class="likert-pill">
+                <input type="radio" name="helpfulness" value="2" />
+                <span>2</span>
+                <small>Slightly</small>
+              </label>
+              <label class="likert-pill">
+                <input type="radio" name="helpfulness" value="3" />
+                <span>3</span>
+                <small>Moderately</small>
+              </label>
+              <label class="likert-pill">
+                <input type="radio" name="helpfulness" value="4" />
+                <span>4</span>
+                <small>Very</small>
+              </label>
+              <label class="likert-pill">
+                <input type="radio" name="helpfulness" value="5" />
+                <span>5</span>
+                <small>Extremely</small>
+              </label>
+            </div>
+            <label class="radio-pill muted-pill" style="margin-top: 8px;">
+              <input type="radio" name="helpfulness" value="PREFER_NOT_TO_ANSWER" />
+              Prefer not to answer
+            </label>
+          </div>
         </div>
 
         <div class="action-row">
-          <button id="submitDecisionBtn" class="btn primary">Submit & Check Ground Truth</button>
+          <button id="submitDecisionBtn" class="btn primary">Submit &amp; Check Ground Truth</button>
           <button id="prevBtn" class="btn secondary">&larr; Previous</button>
           <button id="nextBtn" class="btn secondary">Next Case &rarr;</button>
         </div>
