@@ -183,9 +183,9 @@
         <div class="plot-header">
           <h3 id="timelineTitle">User Multi-Day Anomaly Score Timeline (Click Any Dot to Inspect Day)</h3>
           <span class="muted">
-            <span class="dark-red-pill">&#9679; Threat (TP/FN)</span> &nbsp;|&nbsp;
-            <span class="orange-pill">&#9679; False Alarm (FP)</span> &nbsp;|&nbsp;
-            <span class="blue-pill">&#9679; Benign (TN)</span> &nbsp;|&nbsp;
+            <span style="color:#ef4444;">&#9679; Threat (TP/FN)</span> &nbsp;|&nbsp;
+            <span style="color:#f59e0b;">&#9679; False Alarm (FP)</span> &nbsp;|&nbsp;
+            <span style="color:#3b82f6;">&#9679; Benign (TN)</span> &nbsp;|&nbsp;
             <span style="color:#10b981;">--- MAD Threshold</span>
           </span>
         </div>
@@ -224,7 +224,7 @@
             <button class="btn small" onclick="openZoom('imgBeeswarm')">Zoom</button>
           </div>
           <div class="muted" style="margin-bottom: 8px; font-size: 0.82rem;">
-            Summarizes feature impact across all test days (<em>N</em>) for this user: <span class="orange-pill">High feature values</span> vs. <span class="blue-pill">Low feature values</span>.
+            Summarizes feature impact across all test days (<em>N</em>) for this user: red points = high feature values; blue points = low feature values.
           </div>
           <div class="img-wrapper">
             <img id="imgBeeswarm" src="" alt="Global SHAP Beeswarm Plot" />
@@ -252,13 +252,13 @@
             <h3>Design A — Standardized Baseline Deviation (Z-Score)</h3>
             <button class="btn small" onclick="openZoom('imgA')">Zoom</button>
           </div>
-          <div class="muted" style="margin-bottom: 10px; font-size: 0.83rem; line-height: 1.55; background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
+          <div class="muted" style="margin-bottom: 10px; font-size: 0.83rem; line-height: 1.45; background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
             <strong>How to Read Z-Score Bars:</strong><br/>
             &bull; <span class="dark-red-pill"><strong>Dark Red (&ge; +2.0&sigma;) &mdash; High Deviation:</strong></span> Major jump above the user's 96-day baseline.<br/>
-            &bull; <span class="orange-pill"><strong>Orange (0 to +2.0&sigma;) &mdash; Check <code>base</code> Value:</strong></span>
+            &bull; <span style="color:#fdba74;"><strong>Orange (0 to +2.0&sigma;) &mdash; Check <code>base</code> Value:</strong></span>
               <strong>Anomalous if <code>base = 0.0</code></strong> (first-time rare event such as WikiLeaks, Keylogger, or Unauthorized Login equals <code>+1.0&sigma;</code>);
               <strong>Mild deviation if <code>base &gt; 0</code></strong> (normal day-to-day variance).<br/>
-            &bull; <span class="blue-pill"><strong>Blue (&le; 0.0&sigma;) &mdash; Normal:</strong></span> At or below the user's typical daily average.
+            &bull; <span style="color:#93c5fd;"><strong>Blue (&le; 0.0&sigma;) &mdash; Normal:</strong></span> At or below the user's typical daily average.
           </div>
           <div class="img-wrapper">
             <img id="imgA" src="" alt="Design A Z-Score Plot" />
@@ -270,11 +270,11 @@
             <h3>Design B — SHAP Feature Attribution Waterfall</h3>
             <button class="btn small" onclick="openZoom('imgB')">Zoom</button>
           </div>
-          <div class="muted" style="margin-bottom: 10px; font-size: 0.83rem; line-height: 1.55; background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
+          <div class="muted" style="margin-bottom: 10px; font-size: 0.83rem; line-height: 1.45; background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
             <strong>SHAP Conservation Rule &mdash; <code>f(x) = E[f(X)] + &Sigma; &phi;<sub>j</sub></code>:</strong><br/>
             Start at expected baseline <code>E[f(X)]</code> (bottom) and sum all feature arrows to reach final surrogate threat probability <code>f(x)</code> (top).<br/>
-            <span class="orange-pill"><strong>Orange (+&phi;)</strong></span> pushes toward <em>Threat</em>;
-            <span class="blue-pill"><strong>Blue (&minus;&phi;)</strong></span> pushes toward <em>Benign</em> (<code>f(x) &ge; 0.50</code> = flagged anomaly).
+            <span class="dark-red-pill"><strong>Dark Red (+&phi;)</strong></span> pushes toward <em>Threat</em>;
+            <span style="color:#93c5fd;"><strong>Blue (&minus;&phi;)</strong></span> pushes toward <em>Benign</em> (<code>f(x) &ge; 0.50</code> = flagged anomaly).
           </div>
           <div class="img-wrapper">
             <img id="imgB" src="" alt="Design B SHAP Plot" />
