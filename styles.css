@@ -115,11 +115,27 @@ select, input[type="text"] {
   width: 300px;
 }
 
-/* Dark Red Badge for Z-Score High Deviation */
+/* Color Pills for Z-Score & SHAP Legends */
 .dark-red-pill {
-  color: #f87171;
+  color: #fca5a5;
   background: #450a0a;
   border: 1px solid #991b1b;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.orange-pill {
+  color: #fb923c;
+  background: #431407;
+  border: 1px solid #9a3412;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.blue-pill {
+  color: #93c5fd;
+  background: #172554;
+  border: 1px solid #1e40af;
   padding: 1px 6px;
   border-radius: 4px;
 }
@@ -187,7 +203,7 @@ select, input[type="text"] {
 
 .tag.mixed {
   background: rgba(251, 146, 60, 0.22);
-  color: #fdba74;
+  color: #fb923c;
   border: 1px solid rgba(251, 146, 60, 0.5);
 }
 
