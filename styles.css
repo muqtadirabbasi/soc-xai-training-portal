@@ -186,9 +186,9 @@ select, input[type="text"] {
 }
 
 .tag.mixed {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(251, 146, 60, 0.22);
+  color: #fdba74;
+  border: 1px solid rgba(251, 146, 60, 0.5);
 }
 
 .tag.benign {
