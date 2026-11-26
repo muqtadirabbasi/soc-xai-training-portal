@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOC Triage Operations - Evaluation Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #cbd5e1;
+      line-height: 1.4;
+      padding: 15px;
+    }
+    .wrapper {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    header {
+      position: relative;
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 12px;
+    }
+    .badge {
+      display: inline-block;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    h1 {
+      font-size: 1.6rem;
+      color: #ffffff;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    .nav-container {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(148, 163, 184, 0.05);
+      border: 1px solid #475569;
+      color: #94a3b8;
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      font-family: inherit;
+    }
+    .btn-nav-back:hover {
+      border-color: #cbd5e1;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    @media (min-width: 768px) {
+      .nav-container {
+        position: absolute;
+        left: 0;
+        top: 6px;
+        margin-top: 0;
+      }
+      .export-container {
+        position: absolute;
+        right: 0;
+        top: 6px;
+      }
+    }
+
+    /* PROMINENT FIRST-ACTION PARTICIPANT ID (1-40) SELECTOR */
+    .selector-container {
+      background: #1e293b;
+      border: 2px solid #7c3aed;
+      padding: 18px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+      text-align: center;
+    }
+    .step-badge {
+      background: #7c3aed;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .selector-label {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .selector-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      max-width: 840px;
+    }
+    .cohort-select {
+      background: #0f172a;
+      border: 2px solid #475569;
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.20s ease-in-out;
+      text-align: center;
+      flex: 1 1 360px;
+      max-width: 440px;
+    }
+    .cohort-select:focus, .cohort-select:hover {
+      border-color: #a78bfa;
+      box-shadow: 0 0 12px rgba(167, 139, 250, 0.3);
+    }
+    .unlock-btn {
+      background: #7c3aed;
+      border: 2px solid #6d28d9;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .unlock-btn:hover { background: #6d28d9; }
+    .unlock-btn:disabled {
+      background: #334155;
+      border-color: #475569;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .assignment-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+    }
+    .role-chip {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #94a3b8;
+    }
+    .role-chip.student {
+      color: #38bdf8;
+      border-color: #0284c7;
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .role-chip.analyst {
+      color: #a78bfa;
+      border-color: #7c3aed;
+      background: rgba(124, 58, 237, 0.12);
+    }
+    .role-chip.cohort-pill {
+      color: #34d399;
+      border-color: #059669;
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .instructions-box {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px dashed #334155;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Group Container Blocks */
+    .cohort-group-block {
+      background: rgba(30, 41, 59, 0.2);
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .cohort-group-block.visible { display: block; }
+    .group-header-title {
+      font-size: 1rem;
+      color: #f1f5f9;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .cohort-meta-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    /* 5-Column Grid */
+    .users-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 1280px) { .users-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .users-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .users-grid { grid-template-columns: 1fr; } }
+
+    .user-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-top: 3px solid #64748b;
+      transition: opacity 0.2s ease, border-color 0.2s ease;
+    }
+    .user-card.border-a { border-top-color: #38bdf8; }
+    .user-card.border-b { border-top-color: #f43f5e; }
+    .user-card.locked-card {
+      opacity: 0.48;
+      border-color: #1e293b;
+    }
+    .user-card.completed-card {
+      border-color: #047857;
+    }
+
+    .user-title {
+      font-size: 0.92rem;
+      color: #ffffff;
+      font-weight: 700;
+      margin-bottom: 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .scen-badge {
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #0f172a;
+      color: #94a3b8;
+      border: 1px solid #334155;
+    }
+    .user-subtitle {
+      font-size: 0.74rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .design-a { color: #38bdf8; }
+    .design-b { color: #f43f5e; }
+
+    .trial-btn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .dashboard-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+      background: #2563eb;
+      border: 1px solid #1d4ed8;
+      padding: 7px 10px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    .dashboard-btn:hover { background: #1d4ed8; }
+    .dashboard-btn.design-b-btn {
+      background: #be123c;
+      border-color: #9f1239;
+    }
+    .dashboard-btn.design-b-btn:hover { background: #9f1239; }
+    .dashboard-btn.completed {
+      background: #065f46;
+      border-color: #047857;
+    }
+    .dashboard-btn:disabled {
+      background: #1e293b;
+      border-color: #334155;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+    .dashboard-btn:disabled:hover {
+      background: #1e293b;
+    }
+    .dashboard-btn.completed,
+    .dashboard-btn.completed:disabled {
+      background: #065f46;
+      border-color: #047857;
+      color: #d1fae5;
+      opacity: 0.92;
+      cursor: default;
+    }
+    .dashboard-btn.completed:disabled:hover {
+      background: #065f46;
+    }
+    .trial-status-dot {
+      font-size: 0.68rem;
+      background: rgba(15, 23, 42, 0.55);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Accordion Dropdowns */
+    .matrix-dropdown {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .matrix-toggle-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      color: #94a3b8;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+    }
+    .matrix-toggle-btn:hover { color: #a78bfa; }
+    .matrix-toggle-btn .left-side { display: flex; align-items: center; gap: 4px; }
+    .matrix-toggle-btn .chevron { transition: transform 0.2s ease; }
+    .matrix-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.2s ease-out;
+      padding: 0 8px;
+    }
+    .matrix-dropdown.active .matrix-content {
+      max-height: 160px;
+      padding-bottom: 8px;
+    }
+    .matrix-dropdown.active .chevron { transform: rotate(180deg); }
+    .matrix-dropdown.active .matrix-toggle-btn {
+      border-bottom: 1px solid #1e293b;
+      color: #a78bfa;
+    }
+    .matrix-links {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .matrix-link {
+      display: flex;
+      align-items: center;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.72rem;
+      padding: 5px 6px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+      transition: all 0.1s;
+      cursor: pointer;
+    }
+    .matrix-link:hover {
+      color: #ffffff;
+      background: rgba(124, 58, 237, 0.18);
+    }
+
+    /* SINGLE DYNAMIC EXIT SURVEY DEPLOYMENT BLOCK */
+    .survey-section {
+      border: 1px solid #10b981;
+      background: rgba(16, 185, 129, 0.04);
+      border-radius: 8px;
+      padding: 22px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .single-survey-card {
+      max-width: 580px;
+      margin: 12px auto 0;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .survey-role-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+    .survey-role-title.student-theme { color: #38bdf8; }
+    .survey-role-title.analyst-theme { color: #a78bfa; }
+
+    .survey-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #10b981;
+      border: 1px solid #059669;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 13px 24px;
+      border-radius: 6px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      transition: all 0.15s;
+      width: 100%;
+      max-width: 440px;
+      cursor: pointer;
+    }
+    .survey-btn:hover {
+      background: #059669;
+      border-color: #047857;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+    }
+    .survey-btn.disabled-survey {
+      background: #334155;
+      border-color: #475569;
+      color: #94a3b8;
+      cursor: not-allowed;
+      pointer-events: none;
+      box-shadow: none;
+    }
+
+    .survey-param-preview {
+      margin-top: 8px;
+      font-size: 0.74rem;
+      color: #94a3b8;
+    }
+
+    /* Footer */
+    .footer-section {
+      border-top: 1px solid #334155;
+      background: rgba(30, 41, 59, 0.3);
+      padding: 14px;
+      border-radius: 8px;
+    }
+    .team-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      font-size: 0.8rem;
+    }
+    .email-link { color: #94a3b8; text-decoration: none; }
+    .email-link:hover { color: #ffffff; text-decoration: underline; }
+
+    /* MODAL STYLES */
+    .image-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .modal-content-wrapper {
+      position: relative;
+      background: #1e293b;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 94vw;
+      max-height: 94vh;
+    }
+    .modal-img {
+      max-width: 88vw;
+      max-height: 84vh;
+      object-fit: contain;
+      border-radius: 4px;
+      background: #ffffff;
+    }
+    .modal-close {
+      align-self: flex-end;
+      color: #94a3b8;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .modal-close:hover { color: #ffffff; }
+
+    /* TRIAGE EVALUATION WORKSPACE MODAL */
+    .triage-modal-box {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 1540px;
+      max-height: 94vh;
+      overflow-y: auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1.48fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 1120px) {
+      .triage-modal-box { grid-template-columns: 1fr; }
+    }
+    .triage-img-pane {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .zoom-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .zoom-btn-group {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .zoom-btn {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      padding: 4px 9px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .zoom-btn:hover {
+      border-color: #a78bfa;
+      color: #ffffff;
+    }
+    .triage-img-viewport {
+      width: 100%;
+      height: 70vh;
+      overflow-y: auto;
+      overflow-x: auto;
+      background: #ffffff;
+      border-radius: 4px;
+      position: relative;
+      border: 1px solid #334155;
+    }
+    .triage-img-viewport img {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: zoom-in;
+    }
+
+    .design-guide-bar {
+      text-align: left;
+      font-size: 0.76rem;
+      padding: 7px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border-left: 3px solid #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+      color: #e2e8f0;
+      line-height: 1.4;
+    }
+    .design-guide-bar.theme-b {
+      border-left-color: #f43f5e;
+      background: rgba(244, 63, 94, 0.08);
+    }
+
+    /* Full 4-Column Scenario Description & Playbook Drawer (Hidden by Default) */
+    .playbook-mini {
+      margin-top: 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.73rem;
+    }
+    .playbook-mini table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .playbook-mini th, .playbook-mini td {
+      border: 1px solid #334155;
+      padding: 6px 7px;
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.38;
+    }
+    .playbook-mini th {
+      background: #0f172a;
+      color: #f8fafc;
+      font-weight: 700;
+    }
+    .playbook-mini code {
+      background: #0f172a;
+      padding: 1px 4px;
+      border-radius: 3px;
+      color: #93c5fd;
+    }
+    .pb-tag {
+      display: inline-block;
+      margin-top: 3px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.66rem;
+      font-weight: 700;
+    }
+    .pb-tag.threat { background: rgba(244, 63, 94, 0.16); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .pb-tag.mixed { background: rgba(168, 85, 247, 0.16); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .pb-tag.benign { background: rgba(16, 185, 129, 0.16); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    .triage-form-pane {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+    .score-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: #1e293b;
+      padding: 9px 11px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 0.74rem;
+    }
+    .score-strip span { color: #94a3b8; display: block; }
+    .score-strip strong { display: block; font-size: 0.88rem; color: #ffffff; margin-top: 2px; }
+
+    /* Clearly separated Q1–Q6 blocks */
+    .form-section {
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .form-section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 12px;
+      padding-bottom: 4px;
+    }
+    .form-section label.sec-lbl {
+      display: block;
+      font-size: 0.81rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 8px;
+    }
+    .choice-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .choice-opt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 7px 11px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .choice-opt:hover { border-color: #7c3aed; }
+    .choice-opt.muted-opt { color: #94a3b8; }
+
+    .triage-select {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #ffffff;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      outline: none;
+    }
+    .triage-select:focus { border-color: #a78bfa; }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: #7c3aed;
+      cursor: pointer;
+    }
+    .range-hints {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* Compact 1-5 Likert Bar for Explanation Helpfulness */
+    .likert-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .likert-bar label {
+      flex: 1 1 auto;
+      text-align: center;
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 6px 8px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .likert-bar label:hover { border-color: #7c3aed; }
+    .likert-bar input { display: none; }
+    .likert-bar label:has(input:checked) {
+      background: #7c3aed;
+      border-color: #7c3aed;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 9px 10px;
+      max-height: 165px;
+      overflow-y: auto;
+    }
+    @media (max-width: 560px) {
+      .checkbox-grid { grid-template-columns: 1fr; }
+    }
+    .checkbox-grid label {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 0.74rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      line-height: 1.3;
+    }
+    .checkbox-grid input[type="checkbox"] {
+      margin-top: 2px;
+      accent-color: #7c3aed;
+    }
+
+    /* SECURE PASSKEY MODAL POPUP DESIGN */
+    .passkey-modal-content {
+      background: #1e293b;
+      border: 2px solid #7c3aed;
+      border-radius: 12px;
+      padding: 24px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+    }
+    .passkey-header { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 8px; }
+    .passkey-desc { font-size: 0.82rem; color: #94a3b8; margin-bottom: 16px; }
+    .passkey-input {
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #ffffff;
+      font-size: 1.2rem;
+      letter-spacing: 0.3em;
+      padding: 10px;
+      border-radius: 6px;
+      width: 100%;
+      text-align: center;
+      outline: none;
+      margin-bottom: 16px;
+      font-family: monospace;
+    }
+    .passkey-input.error-shake {
+      border-color: #ef4444;
+      animation: shake 0.2s ease-in-out 2;
+    }
+    .passkey-btn-stack { display: flex; gap: 10px; }
+    .passkey-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .passkey-submit { background: #7c3aed; color: #ffffff; }
+    .passkey-submit:hover { background: #6d28d9; }
+    .passkey-cancel {
+      background: rgba(148, 163, 184, 0.1);
+      color: #94a3b8;
+      border: 1px solid #475569;
+    }
+    .passkey-cancel:hover { background: rgba(148, 163, 184, 0.15); color: #ffffff; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <header>
+      <div class="badge">Experimental User Study (N = 40 &bull; P01–P40)</div>
+      <h1>SOC Triage Operations - Evaluation Portal</h1>
+      <div class="subtitle">Automated Participant Routing &amp; Sequential Target Verification Hub</div>
+
+      <div class="nav-container">
+        <a href="index.html" class="btn-nav-back">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Back to Training Hub
+        </a>
+      </div>
+
+      <div class="export-container">
+        <button type="button" id="btnExportSession" class="btn-nav-back" style="border-color:#10b981;color:#10b981;">
+          Download Triage Log (CSV) (<span id="loggedCount">0</span>)
+        </button>
+      </div>
+    </header>
+
+    <!-- STEP 1: SINGLE PARTICIPANT ID (1-40) SELECTOR -->
+    <div class="selector-container">
+      <label class="selector-label" for="participantIdSelect">
+        <span class="step-badge">Step 1</span> Select Your Assigned Participant ID (1–40):
+      </label>
+      <div class="selector-row">
+        <select id="participantIdSelect" class="cohort-select">
+          <option value="" disabled selected>-- Select Participant ID (P01 – P40) --</option>
+        </select>
+        <button type="button" id="btnUnlockAssignedCohort" class="unlock-btn" disabled>
+          Unlock Assigned Cohort
+        </button>
+      </div>
+
+      <div class="assignment-strip">
+        <span id="roleStatusChip" class="role-chip">Role: Waiting for Participant ID (1–40)</span>
+        <span id="cohortStatusChip" class="role-chip">Assigned Cohort: —</span>
+      </div>
+    </div>
+
+    <div class="instructions-box">
+      <div><strong>Sequential One-Way Protocol Notice:</strong> Assessments unlock strictly from <strong>left to right</strong> (Case 1 &rarr; Case 5). Once saved, a trial is locked and cannot be revisited. Complete every alert in order to unlock the Exit Survey.</div>
+      <div id="manifestStatus" style="color:#38bdf8;font-weight:600;">Loading stimulus manifest...</div>
+    </div>
+
+    <!-- DYNAMIC COHORT CONTAINERS -->
+    <div id="cohort-1" class="cohort-group-block"></div>
+    <div id="cohort-2" class="cohort-group-block"></div>
+    <div id="cohort-3" class="cohort-group-block"></div>
+    <div id="cohort-4" class="cohort-group-block"></div>
+
+    <!-- SINGLE DYNAMIC EXIT SURVEY BLOCK (LOCKED UNTIL ALL COHORT ASSESSMENTS ARE COMPLETED) -->
+    <div class="survey-section">
+      <h2 style="color: #10b981; font-size: 1.1rem; font-weight: 800; margin-bottom: 4px;">Study Phase Completion</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 4px;">
+        The exit survey button unlocks automatically once you complete all assigned user assessments from left to right:
+      </p>
+
+      <div class="single-survey-card">
+        <div id="surveyRoleTitle" class="survey-role-title">Select Participant ID (P01–P40) Above</div>
+        <a id="btnDynamicSurvey"
+           href="#"
+           class="survey-btn disabled-survey"
+           target="_blank"
+           rel="noopener noreferrer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span id="surveyBtnLabel">Select Participant ID to Activate Survey</span>
+        </a>
+        <div id="surveyParamPreview" class="survey-param-preview">
+          Embedded Qualtrics Metadata: <code>ParticipantID=UNSPECIFIED</code> &bull; <code>Cohort=NONE</code> &bull; <code>Role=UNASSIGNED</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM FOOTER -->
+    <div class="footer-section">
+      <h2 style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">
+        Research Investigation &amp; Contact Desk
+      </h2>
+      <div class="team-grid">
+        <div>
+          <p style="color: #ffffff; font-weight: 700; margin-bottom: 2px;">Abdul Muqtadir Abbasi</p>
+          <p style="color: #a78bfa; font-weight: 500; margin-bottom: 2px;">Principal Investigator &bull; PhD Candidate</p>
+          <p style="color: #64748b; margin-bottom: 2px;">Systems Design Engineering, University of Waterloo</p>
+          <a href="mailto:amabbasi@uwaterloo.ca" class="email-link">amabbasi@uwaterloo.ca</a>
+        </div>
+        <div>
+          <p style="color: #ffffff; font-weight: 700; margin-bottom: 2px;">Fariha Muqtadir</p>
+          <p style="color: #38bdf8; font-weight: 500; margin-bottom: 2px;">Co-Investigator &bull; PhD Candidate</p>
+          <p style="color: #64748b; margin-bottom: 2px;">Systems Design Engineering, University of Waterloo</p>
+          <a href="mailto:fmuqtadi@uwaterloo.ca" class="email-link">fmuqtadi@uwaterloo.ca</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODEL MATRIX / FULL-SCREEN LIGHTBOX MODAL -->
+  <div id="matrixModal" class="image-modal">
+    <div class="modal-content-wrapper">
+      <span class="modal-close" id="modalClose">&times;</span>
+      <img class="modal-img" id="modalTargetImg" src="" alt="Explanation Plot View">
+    </div>
+  </div>
+
+  <!-- ALERT TRIAGE EVALUATION MODAL -->
+  <div id="triageModal" class="image-modal">
+    <div class="triage-modal-box">
+      <!-- Left Pane: Full-Width Scrollable Explanation Image (70vh) + Zoom + Hidden-by-Default Playbook -->
+      <div class="triage-img-pane">
+        <div class="zoom-toolbar">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span id="triageModalTitle" style="color:#ffffff;font-weight:700;font-size:0.88rem;">Alert Review</span>
+            <span id="triageDesignBadge" class="badge" style="margin:0;">Design A</span>
+          </div>
+          <div class="zoom-btn-group">
+            <button type="button" class="zoom-btn" id="btnZoomOut" title="Zoom Out">&minus;</button>
+            <button type="button" class="zoom-btn" id="btnZoomReset" title="Reset Width"><span id="zoomLevelLabel">100%</span></button>
+            <button type="button" class="zoom-btn" id="btnZoomIn" title="Zoom In">+</button>
+            <button type="button" class="zoom-btn" id="btnFullLightbox" style="border-color:#38bdf8;color:#38bdf8;">Full-Screen</button>
+          </div>
+        </div>
+
+        <div id="designGuideBar" class="design-guide-bar"></div>
+
+        <div class="triage-img-viewport" id="triageImgViewport">
+          <img id="triageTargetImg" src="" alt="Behavioral Explanation Plot" title="Scroll down to inspect all 33 features; click to toggle 100% / 145% zoom">
+        </div>
+
+        <!-- Full 4-Column Scenario Description & Behavioral Indicator Playbook (Hidden by Default) -->
+        <div class="playbook-mini">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="color:#f1f5f9;">Scenario Descriptions &amp; Behavioral Indicator Playbook</strong>
+            <button type="button" class="zoom-btn" id="btnToggleRefTable">Show Playbook</button>
+          </div>
+          <div id="refTableContainer" style="display:none;overflow-x:auto;max-height:230px;overflow-y:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="min-width:140px;">Category / Scenario</th>
+                  <th style="min-width:260px;">Full Behavioral Description</th>
+                  <th style="min-width:170px;">Primary Indicators (Strongest Drivers)</th>
+                  <th style="min-width:170px;">Secondary / Co-Occurring Indicators</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Scenario 1</strong><br><span class="pb-tag threat">WikiLeaks Exfiltration</span></td>
+                  <td>A user who did not previously use removable drives or work after hours suddenly begins logging in after hours, using a removable thumb drive, and uploading sensitive data to <code>wikileaks.org</code>, leaving the organization shortly thereafter.</td>
+                  <td>&bull; <strong>WikiLeaks Access Count</strong><br>&bull; <strong>Thumb Drive / Removable Media Usage</strong></td>
+                  <td>&bull; After-hours activity (Evening/Night/Weekend)<br>&bull; <strong>Sudden Departure Flag</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Scenario 2</strong><br><span class="pb-tag threat">Pre-Departure IP Theft</span></td>
+                  <td>A user begins surfing external job websites and soliciting employment from a competitor. Before leaving the company, they use a thumb drive at markedly higher rates than their baseline to steal proprietary data.</td>
+                  <td>&bull; <strong>Thumb Drive Usage Count</strong> (sharp spike above baseline)<br>&bull; <strong>Job Site Access / Competitor Email Count</strong></td>
+                  <td>&bull; <strong>Sudden Departure Flag</strong><br>&bull; Elevated <code>File</code> / <code>Http</code> activity transitions</td>
+                </tr>
+                <tr>
+                  <td><strong>Scenario 3</strong><br><span class="pb-tag threat">Keylogger &amp; Sabotage</span></td>
+                  <td>A disgruntled system administrator downloads a keylogger and uses a thumb drive to transfer it to their supervisor's machine. The next day, they use the collected credentials to log in as the supervisor and send out an alarming mass email causing organization-wide panic before leaving immediately.</td>
+                  <td>&bull; <strong>Keylogger Download Count</strong><br>&bull; <strong>Mass Email Count</strong> (&ge; 5 recipients)</td>
+                  <td>&bull; <strong>Thumb Drive Usage Count</strong> (transferring keylogger)<br>&bull; <strong>Unauthorized / Suspicious PC Login</strong><br>&bull; <strong>Sudden Departure Flag</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Scenario 4</strong><br><span class="pb-tag threat">Lateral Snooping &amp; Home Email</span></td>
+                  <td>A user repeatedly logs into another user's workstation, searches for interesting or confidential files, and emails them to their personal home email address (e.g., Gmail, Yahoo, Hotmail), with frequency escalating over time.</td>
+                  <td>&bull; <strong>Unauthorized / Non-Primary PC Login</strong><br>&bull; <strong>Home Email Count</strong></td>
+                  <td>&bull; <strong>File Search / Decoy File Access Count</strong><br>&bull; <code>Http &rarr; File</code> or <code>File &rarr; Http</code> transitions</td>
+                </tr>
+                <tr>
+                  <td><strong>Mixed Mode</strong><br><span class="pb-tag mixed">Multi-Vector Attack</span></td>
+                  <td>A compound threat profile in which a user exhibits behavioral indicators spanning <strong>two or more</strong> distinct insider scenarios within the same observation window (e.g., unauthorized PC snooping + home email exfiltration combined with WikiLeaks uploads or job-search USB theft).</td>
+                  <td>&bull; Two or more primary threat indicators active simultaneously (e.g., <strong>WikiLeaks + Home Email</strong> or <strong>Unauthorized Login + Thumb Drive</strong>)</td>
+                  <td>&bull; Multi-channel spikes across <code>email</code>, <code>http</code>, <code>file</code>, and after-hours timing</td>
+                </tr>
+                <tr>
+                  <td><strong>Benign Anomaly</strong><br><span class="pb-tag benign">Non-Malicious Outlier</span></td>
+                  <td>A legitimate employee whose daily reconstruction score crosses the MAD threshold due to an unusual but benign workload surge (e.g., deadline crunch, heavy email volume, atypical meeting gaps, or routine authorized USB use) with <strong>no</strong> malicious exfiltration or unauthorized access.</td>
+                  <td>&bull; <strong>Routine Workload / Timing Spike</strong> (<code>Morning</code>/<code>Afternoon</code> count, inter-activity time, or <code>Logon &rarr; Email</code>)</td>
+                  <td>&bull; Occasional authorized <code>Thumb Drive</code> or <code>Weekend</code> work without WikiLeaks, keyloggers, decoy files, or unauthorized logins</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Pane: Clearly Spaced Q1–Q6 Cognitive Sequence -->
+      <div class="triage-form-pane">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <strong style="color:#ffffff;font-size:0.95rem;">Analyst Triage Decision &amp; Behavioral Attribution</strong>
+            <span class="modal-close" id="triageClose" style="margin:0;">&times;</span>
+          </div>
+
+          <!-- Condition-specific metrics strip (Z-score vs. SHAP f(x) & E[f(x)]) -->
+          <div class="score-strip" id="scoreStripContainer"></div>
+
+          <!-- Q1: Triage Verdict -->
+          <div class="form-section">
+            <label class="sec-lbl">1. Triage Classification Decision:</label>
+            <div class="choice-btn-group">
+              <label class="choice-opt">
+                <input type="radio" name="decision" value="THREAT">
+                <span>Escalate as Insider Threat / Malicious Anomaly</span>
+              </label>
+              <label class="choice-opt">
+                <input type="radio" name="decision" value="BENIGN">
+                <span>Dismiss as Benign (Normal or Benign Anomaly)</span>
+              </label>
+              <label class="choice-opt muted-opt">
+                <input type="radio" name="decision" value="PREFER_NOT_TO_ANSWER">
+                <span>Prefer not to answer</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q2: Primary Behavioral Indicator -->
+          <div class="form-section">
+            <label class="sec-lbl" for="primaryCue">2. Primary Behavioral Indicator (Strongest Driver):</label>
+            <select id="primaryCue" class="triage-select">
+              <option value="">-- Select primary indicator --</option>
+              <option value="wikileaks_access">WikiLeaks Access</option>
+              <option value="thumb_removable_drive">Thumb Drive / Removable Media Usage</option>
+              <option value="job_site_competitor">Job Site Surfing / Competitor Email</option>
+              <option value="keylogger_download">Keylogger / Spyware Download</option>
+              <option value="mass_email">Mass Email Burst (&ge; 5 Recipients)</option>
+              <option value="unauthorized_pc_login">Unauthorized / Non-Primary PC Logon</option>
+              <option value="file_search_decoy">Decoy / Sensitive File Search &amp; Access</option>
+              <option value="home_email">Personal / Home Email Exfiltration</option>
+              <option value="after_hours_departure">After-Hours (Evening / Night / Weekend) / Sudden Departure</option>
+              <option value="workload_timing_spike">Routine Workload / Inter-Activity Timing Spike</option>
+              <option value="prefer_not_to_answer">Prefer not to answer</option>
+            </select>
+          </div>
+
+          <!-- Q3: Secondary / Co-Occurring Indicators -->
+          <div class="form-section">
+            <label class="sec-lbl">3. Secondary / Co-Occurring Indicators (Check all additional cues):</label>
+            <div class="checkbox-grid" id="secondaryCueGroup">
+              <label><input type="checkbox" name="secondaryCue" value="wikileaks_access"> WikiLeaks Access</label>
+              <label><input type="checkbox" name="secondaryCue" value="thumb_removable_drive"> Thumb / Removable Drive</label>
+              <label><input type="checkbox" name="secondaryCue" value="job_site_competitor"> Job Site / Competitor Email</label>
+              <label><input type="checkbox" name="secondaryCue" value="keylogger_download"> Keylogger Download</label>
+              <label><input type="checkbox" name="secondaryCue" value="mass_email"> Mass Email (&ge; 5 recipients)</label>
+              <label><input type="checkbox" name="secondaryCue" value="unauthorized_pc_login"> Unauthorized PC Login</label>
+              <label><input type="checkbox" name="secondaryCue" value="file_search_decoy"> Decoy / Sensitive File Access</label>
+              <label><input type="checkbox" name="secondaryCue" value="home_email"> Home Email (Gmail/Yahoo/Hotmail)</label>
+              <label><input type="checkbox" name="secondaryCue" value="after_hours_weekend"> After-Hours (Evening / Night) / Weekend</label>
+              <label><input type="checkbox" name="secondaryCue" value="sudden_departure"> Sudden Departure Flag</label>
+              <label><input type="checkbox" name="secondaryCue" value="workload_timing_spike"> Workload / Timing Variance</label>
+              <label><input type="checkbox" name="secondaryCue" value="prefer_not_to_answer"> Prefer not to answer</label>
+            </div>
+          </div>
+
+          <!-- Q4: Suspected Scenario / Pattern Type -->
+          <div class="form-section">
+            <label class="sec-lbl" for="scenarioHypothesis">4. Suspected Scenario / Pattern Type:</label>
+            <select id="scenarioHypothesis" class="triage-select">
+              <option value="">-- Select scenario / pattern type --</option>
+              <option value="S1_wikileaks">Scenario 1: WikiLeaks Exfiltration (USB + WikiLeaks + After-Hours)</option>
+              <option value="S2_ip_theft">Scenario 2: Pre-Departure IP Theft (Job Sites / Competitor + USB)</option>
+              <option value="S3_keylogger_sabotage">Scenario 3: Keylogger / Mass Email Sabotage</option>
+              <option value="S4_lateral_home_email">Scenario 4: Unauthorized PC Login + File Search + Home Email</option>
+              <option value="MIXED_MODE">Mixed Mode: Multiple Co-Occurring Attack Scenarios</option>
+              <option value="BENIGN_ANOMALY">Benign Anomaly: High Workload / Timing Shift (Non-Malicious)</option>
+              <option value="NORMAL_BASELINE">Normal Baseline Activity</option>
+              <option value="prefer_not_to_answer">Prefer not to answer</option>
+            </select>
+          </div>
+
+          <!-- Q5: Overall Decision Confidence (0% - 100% + derived 1-5 calibration score) -->
+          <div class="form-section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="sec-lbl" for="confidenceRange" style="margin:0;">
+                5. Overall Decision Confidence: <strong id="confidenceVal" style="color:#a78bfa;">50%</strong>
+              </label>
+              <label style="font-size:0.73rem;color:#94a3b8;cursor:pointer;display:flex;align-items:center;gap:4px;">
+                <input type="checkbox" id="confPreferNot" style="accent-color:#7c3aed;"> Prefer not to answer
+              </label>
+            </div>
+            <div class="slider-row">
+              <input type="range" id="confidenceRange" min="0" max="100" step="5" value="50">
+            </div>
+            <div class="range-hints">
+              <span>0% (Guess)</span>
+              <span>50%</span>
+              <span>100% (Certain)</span>
+            </div>
+          </div>
+
+          <!-- Q6: Explanation Helpfulness (Variable #14: 1-5 Likert per case) -->
+          <div class="form-section">
+            <label class="sec-lbl">6. Explanation Helpfulness (1 = Not Helpful, 5 = Extremely Helpful):</label>
+            <div class="likert-bar" id="helpfulnessLikert">
+              <label><input type="radio" name="helpfulness" value="1">1</label>
+              <label><input type="radio" name="helpfulness" value="2">2</label>
+              <label><input type="radio" name="helpfulness" value="3">3</label>
+              <label><input type="radio" name="helpfulness" value="4">4</label>
+              <label><input type="radio" name="helpfulness" value="5">5</label>
+              <label><input type="radio" name="helpfulness" value="prefer_not_to_answer">Prefer not to answer</label>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div id="triageValidationMsg" style="color:#f87171;font-size:0.77rem;margin-bottom:8px;display:none;">
+            Please complete Questions 1, 2, 4, and 6 (or select "Prefer not to answer") before saving.
+          </div>
+          <button type="button" id="btnSaveTriage" class="passkey-btn passkey-submit" style="width:100%;">
+            Save &amp; Lock Triage Decision
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURE PASSKEY MODAL COMPONENT -->
+  <div id="passkeyModal" class="image-modal">
+    <div class="passkey-modal-content">
+      <div class="passkey-header">Verification Required</div>
+      <div class="passkey-desc" id="passkeyModalDesc">Please enter the 5-digit security token key assigned to this tracking environment row.</div>
+      <input type="password" id="passkeyField" class="passkey-input" maxlength="5" placeholder="•••••">
+      <div class="passkey-btn-stack">
+        <button type="button" id="passkeyCancelBtn" class="passkey-btn passkey-cancel">Cancel</button>
+        <button type="button" id="passkeySubmitBtn" class="passkey-btn passkey-submit">Unlock Row</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const passkeyRegistry = {
+      'cohort-1': '12034',
+      'cohort-2': '21043',
+      'cohort-3': '34012',
+      'cohort-4': '43021'
+    };
+
+    const SURVEY_URLS = {
+      STUDENT: 'https://uwaterloo.yul1.qualtrics.com/jfe/preview/previewId/a5d74870-1412-4b41-8754-c0df9d1f70e8/SV_es8HRdyIVOMqW6q?Q_CHL=preview&Q_SurveyVersionID=current',
+      ANALYST: 'https://uwaterloo.ca1.qualtrics.com/jfe/form/SV_es8HRdyIVOMqW6q'
+    };
+
+    const ALLOWED_TESTING_DATES = {
+      'ALT1465': ['2010-08-20', '2010-08-11', '2010-08-13'],
+      'CIF1430': ['2010-08-02', '2010-08-30', '2010-07-26'],
+      'CRD0272': ['2010-07-15', '2010-07-17'],
+      'AMC1883': ['2011-02-11', '2011-01-22']
+    };
+
+    const COHORT_MATRIX = {
+      'cohort-1': {
+        title: 'Testing Cohort Group 1',
+        shortCode: 'C1',
+        orderCode: 'A_A_A_B_B',
+        composition: 'Participants P01–P10 (P01–P05 Students/Staff • P06–P10 SOC Analysts) • Order: A, A, A (Benign), B, B',
+        slots: [
+          { cert_id: 'ALT1465', scenario: 'S1', label: 'User Profile ALT1465', design: 'A' },
+          { cert_id: 'CIF1430', scenario: 'S2', label: 'User Profile CIF1430', design: 'A' },
+          { cert_id: 'AAB1302', scenario: 'BENIGN', label: 'User Profile AAB1302', design: 'A' },
+          { cert_id: 'CRD0272', scenario: 'S3', label: 'User Profile CRD0272', design: 'B' },
+          { cert_id: 'AMC1883', scenario: 'S4', label: 'User Profile AMC1883', design: 'B' },
+        ]
+      },
+      'cohort-2': {
+        title: 'Testing Cohort Group 2',
+        shortCode: 'C2',
+        orderCode: 'B_B_A_A_A',
+        composition: 'Participants P11–P20 (P11–P15 Students/Staff • P16–P20 SOC Analysts) • Order: B, B, A (Benign), A, A',
+        slots: [
+          { cert_id: 'CIF1430', scenario: 'S2', label: 'User Profile CIF1430', design: 'B' },
+          { cert_id: 'ALT1465', scenario: 'S1', label: 'User Profile ALT1465', design: 'B' },
+          { cert_id: 'AAB1302', scenario: 'BENIGN', label: 'User Profile AAB1302', design: 'A' },
+          { cert_id: 'AMC1883', scenario: 'S4', label: 'User Profile AMC1883', design: 'A' },
+          { cert_id: 'CRD0272', scenario: 'S3', label: 'User Profile CRD0272', design: 'A' },
+        ]
+      },
+      'cohort-3': {
+        title: 'Testing Cohort Group 3',
+        shortCode: 'C3',
+        orderCode: 'A_A_B_B_B',
+        composition: 'Participants P21–P30 (P21–P25 Students/Staff • P26–P30 SOC Analysts) • Order: A, A, B (Benign), B, B',
+        slots: [
+          { cert_id: 'CRD0272', scenario: 'S3', label: 'User Profile CRD0272', design: 'A' },
+          { cert_id: 'AMC1883', scenario: 'S4', label: 'User Profile AMC1883', design: 'A' },
+          { cert_id: 'AAB1302', scenario: 'BENIGN', label: 'User Profile AAB1302', design: 'B' },
+          { cert_id: 'ALT1465', scenario: 'S1', label: 'User Profile ALT1465', design: 'B' },
+          { cert_id: 'CIF1430', scenario: 'S2', label: 'User Profile CIF1430', design: 'B' },
+        ]
+      },
+      'cohort-4': {
+        title: 'Testing Cohort Group 4',
+        shortCode: 'C4',
+        orderCode: 'B_B_B_A_A',
+        composition: 'Participants P31–P40 (P31–P35 Students/Staff • P36–P40 SOC Analysts) • Order: B, B, B (Benign), A, A',
+        slots: [
+          { cert_id: 'AMC1883', scenario: 'S4', label: 'User Profile AMC1883', design: 'B' },
+          { cert_id: 'CRD0272', scenario: 'S3', label: 'User Profile CRD0272', design: 'B' },
+          { cert_id: 'AAB1302', scenario: 'BENIGN', label: 'User Profile AAB1302', design: 'B' },
+          { cert_id: 'CIF1430', scenario: 'S2', label: 'User Profile CIF1430', design: 'A' },
+          { cert_id: 'ALT1465', scenario: 'S1', label: 'User Profile ALT1465', design: 'A' },
+        ]
+      }
+    };
+
+    let manifestTrials = [];
+    let pendingCohortId = '';
+    let unlockedCohortId = '';
+    let activeTrialContext = null;
+    let currentZoomPct = 100;
+    let sessionSequenceCounter = 0;
+    const triageResponses = {};
+
+    let trialTelemetry = {
+      trial_order: 0,
+      case_load_ts: 0,
+      first_interaction_ts: null,
+      verdict_changes: 0,
+      max_scroll_depth_pct: 0,
+      chart_interaction_count: 0,
+      chart_dwell_ms: 0,
+      chart_hover_enter_ts: null,
+      playbook_opened_count: 0
+    };
+
+    function basename(pathStr) {
+      return String(pathStr || '').split(/[\\/]/).pop();
+    }
+
+    function markFirstInteraction() {
+      if (trialTelemetry.first_interaction_ts === null && trialTelemetry.case_load_ts > 0) {
+        trialTelemetry.first_interaction_ts = performance.now();
+      }
+    }
+
+    function updateScrollDepth() {
+      const vp = document.getElementById('triageImgViewport');
+      if (!vp) return;
+      const scrollable = vp.scrollHeight - vp.clientHeight;
+      let pct = 100;
+      if (scrollable > 4) {
+        pct = Math.min(100, Math.max(0, ((vp.scrollTop + vp.clientHeight) / vp.scrollHeight) * 100));
+      }
+      if (pct > trialTelemetry.max_scroll_depth_pct) {
+        trialTelemetry.max_scroll_depth_pct = Number(pct.toFixed(1));
+      }
+    }
+
+    function flushChartDwell() {
+      if (trialTelemetry.chart_hover_enter_ts !== null) {
+        trialTelemetry.chart_dwell_ms += (performance.now() - trialTelemetry.chart_hover_enter_ts);
+        trialTelemetry.chart_hover_enter_ts = null;
+      }
+    }
+
+    function resolveParticipantAssignment(globalId) {
+      const idNum = parseInt(globalId, 10);
+      if (!idNum || idNum < 1 || idNum > 40) {
+        return null;
+      }
+      const cohortIndex = Math.floor((idNum - 1) / 10) + 1;
+      const withinCohortSlot = ((idNum - 1) % 10) + 1;
+      const isStudent = withinCohortSlot <= 5;
+      const cohortId = `cohort-${cohortIndex}`;
+      const cohortCfg = COHORT_MATRIX[cohortId];
+      const paddedId = `P${String(idNum).padStart(2, '0')}`;
+      const compositeId = `${paddedId}_${cohortCfg.shortCode}_${isStudent ? 'STU' : 'SOC'}`;
+
+      return {
+        globalId: idNum,
+        paddedId,
+        compositeId,
+        withinCohortSlot,
+        cohortIndex,
+        cohortId,
+        cohortTitle: cohortCfg.title,
+        orderCode: cohortCfg.orderCode,
+        isStudent,
+        roleCode: isStudent ? 'Student_Staff' : 'SOC_Analyst',
+        roleDisplay: isStudent ? 'University Student / Staff' : 'Professional SOC Analyst'
+      };
+    }
+
+    function populateParticipantDropdown() {
+      const sel = document.getElementById('participantIdSelect');
+      for (let c = 1; c <= 4; c++) {
+        const og = document.createElement('optgroup');
+        const startId = (c - 1) * 10 + 1;
+        const endId = c * 10;
+        og.label = `Cohort ${c} (P${String(startId).padStart(2, '0')}–P${String(endId).padStart(2, '0')})`;
+        for (let i = startId; i <= endId; i++) {
+          const info = resolveParticipantAssignment(i);
+          const opt = document.createElement('option');
+          opt.value = String(i);
+          opt.textContent = `${info.paddedId} — ${info.roleDisplay} (${info.cohortTitle})`;
+          og.appendChild(opt);
+        }
+        sel.appendChild(og);
+      }
+    }
+
+    function applyZoom(pct) {
+      const img = document.getElementById('triageTargetImg');
+      const viewport = document.getElementById('triageImgViewport');
+      const label = document.getElementById('zoomLevelLabel');
+
+      currentZoomPct = Math.min(250, Math.max(70, pct));
+      img.style.width = `${currentZoomPct}%`;
+      img.style.height = 'auto';
+      img.style.cursor = currentZoomPct > 100 ? 'zoom-out' : 'zoom-in';
+      label.textContent = `${currentZoomPct}%`;
+
+      if (currentZoomPct === 100) {
+        viewport.scrollTop = 0;
+        viewport.scrollLeft = 0;
+      }
+      requestAnimationFrame(updateScrollDepth);
+    }
+
+    function syncSecondaryExclusions() {
+      const selectedPrimary = document.getElementById('primaryCue').value;
+      document.querySelectorAll('input[name="secondaryCue"]').forEach(cb => {
+        const isSame = selectedPrimary && selectedPrimary !== 'prefer_not_to_answer' && cb.value === selectedPrimary;
+        if (isSame) {
+          cb.checked = false;
+          cb.disabled = true;
+          cb.parentElement.style.opacity = '0.42';
+          cb.parentElement.title = 'Already selected as Primary Indicator';
+        } else {
+          cb.disabled = false;
+          cb.parentElement.style.opacity = '1';
+          cb.parentElement.title = '';
+        }
+      });
+    }
+
+    function getTrialsForUser(certId) {
+      const allowedDates = ALLOWED_TESTING_DATES[certId];
+      const matches = manifestTrials.filter(t => t.cert_id === certId);
+      if (!allowedDates) {
+        return matches;
+      }
+      return matches
+        .filter(t => allowedDates.includes(t.date))
+        .sort((a, b) => allowedDates.indexOf(a.date) - allowedDates.indexOf(b.date));
+    }
+
+    function getCohortTrialSequence(cohortId) {
+      const cfg = COHORT_MATRIX[cohortId];
+      if (!cfg) return [];
+      const seq = [];
+      cfg.slots.forEach((slot, sIdx) => {
+        const userTrials = getTrialsForUser(slot.cert_id);
+        userTrials.forEach((tr, tIdx) => {
+          const key = `${cohortId}__${slot.cert_id}__${tr.trial_id}`;
+          seq.push({
+            key,
+            cohortId,
+            sIdx,
+            tIdx,
+            slot,
+            trial: tr,
+            isDone: Boolean(triageResponses[key])
+          });
+        });
+      });
+      return seq;
+    }
+
+    function syncAssignmentAndSurvey() {
+      const rawVal = document.getElementById('participantIdSelect').value;
+      const info = resolveParticipantAssignment(rawVal);
+
+      const roleChip = document.getElementById('roleStatusChip');
+      const cohortChip = document.getElementById('cohortStatusChip');
+      const unlockBtn = document.getElementById('btnUnlockAssignedCohort');
+      const titleEl = document.getElementById('surveyRoleTitle');
+      const btnEl = document.getElementById('btnDynamicSurvey');
+      const labelEl = document.getElementById('surveyBtnLabel');
+      const previewEl = document.getElementById('surveyParamPreview');
+
+      if (!info) {
+        roleChip.className = 'role-chip';
+        roleChip.textContent = 'Role: Waiting for Participant ID (1–40)';
+        cohortChip.className = 'role-chip';
+        cohortChip.textContent = 'Assigned Cohort: —';
+        unlockBtn.disabled = true;
+        unlockBtn.textContent = 'Unlock Assigned Cohort';
+
+        titleEl.className = 'survey-role-title';
+        titleEl.textContent = 'Select Participant ID (P01–P40) Above';
+        btnEl.className = 'survey-btn disabled-survey';
+        btnEl.href = '#';
+        labelEl.textContent = 'Select Participant ID to Activate Survey';
+        previewEl.innerHTML =
+          'Embedded Qualtrics Metadata: <code>ParticipantID=UNSPECIFIED</code> &bull; <code>Cohort=NONE</code> &bull; <code>Role=UNASSIGNED</code>';
+        return;
+      }
+
+      roleChip.className = `role-chip ${info.isStudent ? 'student' : 'analyst'}`;
+      roleChip.textContent = `Role: ${info.roleDisplay} (Slot ${info.withinCohortSlot}/10)`;
+
+      const isAlreadyUnlocked = unlockedCohortId === info.cohortId;
+      cohortChip.className = 'role-chip cohort-pill';
+      cohortChip.textContent = `Assigned: ${info.cohortTitle} ${isAlreadyUnlocked ? '(Unlocked ✓)' : '(Locked)'}`;
+
+      unlockBtn.disabled = false;
+      unlockBtn.textContent = isAlreadyUnlocked
+        ? `${info.cohortTitle} Unlocked ✓`
+        : `Unlock ${info.cohortTitle}`;
+
+      const cohortSeq = getCohortTrialSequence(info.cohortId);
+      const totalRequired = cohortSeq.length;
+      const completedInCohort = cohortSeq.filter(x => x.isDone).length;
+      const allAssessmentsDone = isAlreadyUnlocked && totalRequired > 0 && completedInCohort === totalRequired;
+
+      const rows = cohortSeq.filter(x => x.isDone).map(x => triageResponses[x.key]);
+      const escalatedCount = rows.filter(r => r.triage_verdict === 'THREAT').length;
+      const dismissedCount = rows.filter(r => r.triage_verdict === 'BENIGN').length;
+      const preferNotCount = rows.filter(r => r.triage_verdict === 'PREFER_NOT_TO_ANSWER').length;
+      const meanTriageSec = completedInCohort > 0
+        ? (rows.reduce((sum, r) => sum + Number(r.total_triage_time_sec || 0), 0) / completedInCohort).toFixed(2)
+        : '0.00';
+
+      const baseUrl = info.isStudent ? SURVEY_URLS.STUDENT : SURVEY_URLS.ANALYST;
+      const urlObj = new URL(baseUrl);
+      urlObj.searchParams.set('ParticipantID', info.compositeId);
+      urlObj.searchParams.set('GlobalParticipantNumber', String(info.globalId));
+      urlObj.searchParams.set('WithinCohortSlot', String(info.withinCohortSlot));
+      urlObj.searchParams.set('Cohort', info.cohortId);
+      urlObj.searchParams.set('Role', info.roleCode);
+      urlObj.searchParams.set('ConditionOrder', info.orderCode);
+      urlObj.searchParams.set('TrialsCompleted', String(completedInCohort));
+      urlObj.searchParams.set('TotalTrialsRequired', String(totalRequired));
+      urlObj.searchParams.set('EscalatedCount', String(escalatedCount));
+      urlObj.searchParams.set('DismissedCount', String(dismissedCount));
+      urlObj.searchParams.set('PreferNotCount', String(preferNotCount));
+      urlObj.searchParams.set('MeanTriageTimeSec', String(meanTriageSec));
+
+      titleEl.className = `survey-role-title ${info.isStudent ? 'student-theme' : 'analyst-theme'}`;
+      titleEl.textContent = info.isStudent
+        ? `University Student / Staff Exit Survey (${info.paddedId})`
+        : `Professional SOC Analyst Exit Survey (${info.paddedId})`;
+
+      if (allAssessmentsDone) {
+        btnEl.className = 'survey-btn';
+        btnEl.href = urlObj.toString();
+        labelEl.textContent = info.isStudent
+          ? 'All Cases Complete — Open Student / Staff Exit Survey'
+          : 'All Cases Complete — Open Professional SOC Analyst Survey';
+      } else {
+        btnEl.className = 'survey-btn disabled-survey';
+        btnEl.href = '#';
+        labelEl.textContent = !isAlreadyUnlocked
+          ? `Unlock ${info.cohortTitle} First (${completedInCohort}/${totalRequired})`
+          : `Survey Locked (${completedInCohort} / ${totalRequired} Assessments Completed)`;
+      }
+
+      previewEl.innerHTML =
+        `Progress: <strong>${completedInCohort} / ${totalRequired}</strong> &bull; ` +
+        `<code>ParticipantID=${info.compositeId}</code> &bull; <code>Cohort=${info.cohortId}</code> &bull; <code>Role=${info.roleCode}</code>`;
+    }
+
+    function triggerCohortUnlockFlow(targetCohortId) {
+      if (!targetCohortId) return;
+      if (unlockedCohortId === targetCohortId) {
+        showOnlyCohort(targetCohortId);
+        return;
+      }
+      pendingCohortId = targetCohortId;
+      document.getElementById('passkeyModalDesc').textContent =
+        `Please enter the 5-digit passkey assigned to ${COHORT_MATRIX[targetCohortId].title}.`;
+      const pField = document.getElementById('passkeyField');
+      pField.value = '';
+      pField.classList.remove('error-shake');
+      document.getElementById('passkeyModal').style.display = 'flex';
+      pField.focus();
+    }
+
+    function showOnlyCohort(targetCohortId) {
+      document.querySelectorAll('.cohort-group-block').forEach(group => {
+        if (group.id === targetCohortId) {
+          group.classList.add('visible');
+        } else {
+          group.classList.remove('visible');
+          group.querySelectorAll('.matrix-dropdown').forEach(d => d.classList.remove('active'));
+        }
+      });
+    }
+
+    async function initManifest() {
+      const statusEl = document.getElementById('manifestStatus');
+      try {
+        const res = await fetch('./data/testing_manifest.json');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        manifestTrials = (data.trials || [])
+          .filter(t => {
+            const allowedDates = ALLOWED_TESTING_DATES[t.cert_id];
+            return !allowedDates || allowedDates.includes(t.date);
+          })
+          .map(t => ({
+            ...t,
+            imgA: `./data/testing/design_A_zscore/${basename(t.design_A_path)}`,
+            imgB: `./data/testing/design_B_shap/${basename(t.design_B_path)}`
+          }));
+        statusEl.textContent = `Ready: ${manifestTrials.length} Active Stimuli Loaded across 5 Users`;
+        renderAllCohorts();
+      } catch (err) {
+        statusEl.style.color = '#f87171';
+        statusEl.textContent = `Error loading ./data/testing_manifest.json (${err.message})`;
+      }
+    }
+
+    function renderAllCohorts() {
+      Object.entries(COHORT_MATRIX).forEach(([cohortId, cfg]) => {
+        const container = document.getElementById(cohortId);
+        const seq = getCohortTrialSequence(cohortId);
+        const firstIncompleteIdx = seq.findIndex(item => !item.isDone);
+        const allDone = seq.length > 0 && firstIncompleteIdx === -1;
+
+        let cardsHtml = '';
+
+        cfg.slots.forEach((slot, sIdx) => {
+          const slotItems = seq.filter(item => item.sIdx === sIdx);
+          const isA = slot.design === 'A';
+          const designLabel = isA
+            ? 'System Evaluation - Design A (Z-Score)'
+            : 'System Evaluation - Design B (SHAP)';
+
+          const slotAllDone = slotItems.length > 0 && slotItems.every(item => item.isDone);
+          const slotHasActive = !allDone && slotItems.some(item => {
+            const globalIdx = seq.findIndex(x => x.key === item.key);
+            return globalIdx === firstIncompleteIdx;
+          });
+
+          const cardStateClass = slotAllDone
+            ? 'completed-card'
+            : (slotHasActive ? '' : 'locked-card');
+
+          const badgeText = slotAllDone
+            ? `Case ${sIdx + 1} • Done ✓`
+            : (slotHasActive ? `Case ${sIdx + 1} • Active` : `Case ${sIdx + 1} • Locked`);
+
+          let trialBtnsHtml = '';
+          slotItems.forEach((item) => {
+            const globalIdx = seq.findIndex(x => x.key === item.key);
+            const isCurrentNext = !allDone && globalIdx === firstIncompleteIdx;
+            const isEnabled = isCurrentNext;
+            const statusText = item.isDone
+              ? `Saved ✓ (${triageResponses[item.key].total_triage_time_sec}s)`
+              : (isCurrentNext ? 'Start Next →' : 'Locked');
+
+            trialBtnsHtml += `
+              <button type="button"
+                class="dashboard-btn ${isA ? '' : 'design-b-btn'} ${item.isDone ? 'completed' : ''}"
+                data-cohort="${cohortId}"
+                data-slot="${sIdx}"
+                data-trial-id="${item.trial.trial_id}"
+                ${isEnabled ? '' : 'disabled'}>
+                <span>Alert ${item.tIdx + 1}: ${item.trial.date}</span>
+                <span class="trial-status-dot">${statusText}</span>
+              </button>
+            `;
+          });
+
+          const cmPath = `./data/confusion_matrices/confusion_matrix_${slot.scenario}_${slot.cert_id}.png`;
+          const bsPath = `./data/beeswarms/beeswarm_${slot.scenario}_${slot.cert_id}.png`;
+
+          cardsHtml += `
+            <div class="user-card ${isA ? 'border-a' : 'border-b'} ${cardStateClass}">
+              <div>
+                <div class="user-title">
+                  <span>User ${slot.cert_id}</span>
+                  <span class="scen-badge">${badgeText}</span>
+                </div>
+                <div class="user-subtitle ${isA ? 'design-a' : 'design-b'}">${designLabel}</div>
+                <div class="trial-btn-list">
+                  ${trialBtnsHtml || '<span style="font-size:0.75rem;color:#64748b;">No trials found</span>'}
+                </div>
+              </div>
+
+              <div class="matrix-dropdown">
+                <button class="matrix-toggle-btn" type="button">
+                  <span class="left-side">Model Matrix</span>
+                  <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="matrix-content">
+                  <div class="matrix-links">
+                    <a data-src="${cmPath}" class="matrix-link">Confusion Matrix</a>
+                    <a data-src="${bsPath}" class="matrix-link">Global SHAP Beeswarm</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        const completedCount = seq.filter(x => x.isDone).length;
+        container.innerHTML = `
+          <div class="group-header-title">
+            <span>Active Environment: ${cfg.title} (${completedCount} / ${seq.length} Completed)</span>
+            <span class="cohort-meta-pill">${cfg.composition}</span>
+          </div>
+          <div class="users-grid">${cardsHtml}</div>
+        `;
+      });
+
+      bindDynamicEvents();
+      syncAssignmentAndSurvey();
+    }
+
+    function bindDynamicEvents() {
+      document.querySelectorAll('.matrix-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+          this.parentElement.classList.toggle('active');
+        });
+      });
+
+      const mModal = document.getElementById('matrixModal');
+      const mImg = document.getElementById('modalTargetImg');
+      document.querySelectorAll('.matrix-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          const src = this.getAttribute('data-src');
+          if (src) {
+            mImg.src = src;
+            mModal.style.display = 'flex';
+          }
+        });
+      });
+
+      document.querySelectorAll('.dashboard-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+          if (this.disabled) return;
+          const cohortId = this.getAttribute('data-cohort');
+          const slotIdx = parseInt(this.getAttribute('data-slot'), 10);
+          const trialId = this.getAttribute('data-trial-id');
+          const slot = COHORT_MATRIX[cohortId].slots[slotIdx];
+          const trial = manifestTrials.find(t => t.trial_id === trialId);
+          if (!trial) return;
+
+          const key = `${cohortId}__${slot.cert_id}__${trial.trial_id}`;
+          if (triageResponses[key]) {
+            return;
+          }
+
+          sessionSequenceCounter += 1;
+          activeTrialContext = { cohortId, slot, trial };
+
+          trialTelemetry = {
+            trial_order: sessionSequenceCounter,
+            case_load_ts: performance.now(),
+            first_interaction_ts: null,
+            verdict_changes: 0,
+            max_scroll_depth_pct: 0,
+            chart_interaction_count: 0,
+            chart_dwell_ms: 0,
+            chart_hover_enter_ts: null,
+            playbook_opened_count: 0
+          };
+
+          document.getElementById('refTableContainer').style.display = 'none';
+          document.getElementById('btnToggleRefTable').textContent = 'Show Playbook';
+
+          const isA = slot.design === 'A';
+          const scoreVal = Number(trial.anomaly_score);
+          const threshVal = Number(trial.threshold);
+          const flagged = scoreVal >= threshVal;
+
+          document.getElementById('triageModalTitle').textContent =
+            `${slot.label} • Alert Date: ${trial.date} (${trial.day_of_week})`;
+
+          const badge = document.getElementById('triageDesignBadge');
+          badge.textContent = isA
+            ? 'Design A — Standardized Baseline Deviation (Z-Score)'
+            : 'Design B — SHAP Feature Attribution Waterfall';
+          badge.style.color = isA ? '#38bdf8' : '#f43f5e';
+          badge.style.borderColor = isA ? '#38bdf8' : '#f43f5e';
+
+          const guideBar = document.getElementById('designGuideBar');
+          const stripEl = document.getElementById('scoreStripContainer');
+
+          if (isA) {
+            guideBar.className = 'design-guide-bar';
+            guideBar.innerHTML =
+              '<strong>Z-Score Criteria:</strong> <span style="color:#fca5a5;">Red (&ge; +2.0&sigma;)</span> = strong spike above 96-day baseline; <span style="color:#fdba74;">Orange (0 to +2.0&sigma;)</span> = mild elevation (+1.0&sigma; for rare zero-baseline events); <span style="color:#93c5fd;">Blue (&le; 0&sigma;)</span> = normal or below baseline.';
+            stripEl.innerHTML = `
+              <div>
+                <span>Reconstruction Score</span>
+                <strong>${scoreVal.toFixed(6)}</strong>
+              </div>
+              <div>
+                <span>Baseline Cutoff (MAD &tau;)</span>
+                <strong>${threshVal.toFixed(6)}</strong>
+              </div>
+              <div>
+                <span>Statistical Cutoff Status</span>
+                <strong style="color:${flagged ? '#f59e0b' : '#34d399'};">
+                  ${flagged ? 'Above Cutoff (+' + (scoreVal - threshVal).toFixed(5) + ')' : 'Within Baseline Cutoff'}
+                </strong>
+              </div>
+            `;
+          } else {
+            guideBar.className = 'design-guide-bar theme-b';
+            guideBar.innerHTML =
+              '<strong>SHAP Conservation Rule &mdash; <code>f(x) = E[f(X)] + &Sigma; &phi;<sub>j</sub></code>:</strong> Start at expected baseline <code>E[f(X)]</code> (bottom) and sum feature arrows to reach surrogate threat probability <code>f(x)</code> (top). <span style="color:#fca5a5;">Red (+&phi;)</span> &rarr; <em>Threat</em>; <span style="color:#93c5fd;">Blue (&minus;&phi;)</span> &rarr; <em>Benign</em> (<code>f(x) &ge; 0.50</code> = flagged).';
+
+            const hasShapVals = trial.shap_output_value !== undefined && trial.shap_expected_value !== undefined;
+            const fxText = hasShapVals ? Number(trial.shap_output_value).toFixed(3) : 'See Top f(x)';
+            const efxText = hasShapVals ? Number(trial.shap_expected_value).toFixed(3) : 'See Base E[f(X)]';
+
+            stripEl.innerHTML = `
+              <div>
+                <span>SHAP Output f(x)</span>
+                <strong style="color:#fda4af;">${fxText}</strong>
+              </div>
+              <div>
+                <span>Expected Baseline E[f(X)]</span>
+                <strong style="color:#93c5fd;">${efxText}</strong>
+              </div>
+              <div>
+                <span>AE Score / Cutoff (&tau;)</span>
+                <strong style="color:${flagged ? '#f59e0b' : '#34d399'};">
+                  ${scoreVal.toFixed(4)} / ${threshVal.toFixed(4)}
+                </strong>
+              </div>
+            `;
+          }
+
+          const imgEl = document.getElementById('triageTargetImg');
+          imgEl.onload = () => {
+            applyZoom(100);
+          };
+          imgEl.src = isA ? trial.imgA : trial.imgB;
+
+          // Reset all 6 fields
+          document.querySelectorAll('input[name="decision"]').forEach(r => r.checked = false);
+          document.getElementById('primaryCue').value = '';
+          document.querySelectorAll('input[name="secondaryCue"]').forEach(cb => cb.checked = false);
+          syncSecondaryExclusions();
+          document.getElementById('scenarioHypothesis').value = '';
+          document.getElementById('confidenceRange').value = 50;
+          document.getElementById('confidenceRange').disabled = false;
+          document.getElementById('confidenceVal').textContent = '50%';
+          document.getElementById('confPreferNot').checked = false;
+          document.querySelectorAll('input[name="helpfulness"]').forEach(r => r.checked = false);
+          document.getElementById('triageValidationMsg').style.display = 'none';
+
+          document.getElementById('triageModal').style.display = 'flex';
+        });
+      });
+    }
+
+    // Passive telemetry listeners inside Triage Modal
+    const triageViewport = document.getElementById('triageImgViewport');
+    triageViewport.addEventListener('scroll', () => {
+      markFirstInteraction();
+      updateScrollDepth();
+    });
+    triageViewport.addEventListener('mouseenter', () => {
+      trialTelemetry.chart_hover_enter_ts = performance.now();
+    });
+    triageViewport.addEventListener('mouseleave', () => {
+      flushChartDwell();
+    });
+    triageViewport.addEventListener('click', () => {
+      markFirstInteraction();
+      trialTelemetry.chart_interaction_count += 1;
+    });
+
+    document.getElementById('triageModal').addEventListener('change', (e) => {
+      markFirstInteraction();
+      if (e.target && (e.target.name === 'decision' || e.target.id === 'scenarioHypothesis')) {
+        trialTelemetry.verdict_changes += 1;
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) flushChartDwell();
+    });
+
+    document.getElementById('primaryCue').addEventListener('change', syncSecondaryExclusions);
+
+    document.getElementById('confidenceRange').addEventListener('input', function () {
+      document.getElementById('confidenceVal').textContent = `${this.value}%`;
+    });
+    document.getElementById('confPreferNot').addEventListener('change', function () {
+      const slider = document.getElementById('confidenceRange');
+      const valSpan = document.getElementById('confidenceVal');
+      slider.disabled = this.checked;
+      valSpan.textContent = this.checked ? 'Prefer not to answer' : `${slider.value}%`;
+    });
+
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      markFirstInteraction();
+      trialTelemetry.chart_interaction_count += 1;
+      applyZoom(currentZoomPct + 25);
+    });
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      markFirstInteraction();
+      trialTelemetry.chart_interaction_count += 1;
+      applyZoom(currentZoomPct - 25);
+    });
+    document.getElementById('btnZoomReset').addEventListener('click', () => {
+      markFirstInteraction();
+      trialTelemetry.chart_interaction_count += 1;
+      applyZoom(100);
+    });
+    document.getElementById('triageTargetImg').addEventListener('click', () => {
+      applyZoom(currentZoomPct === 100 ? 145 : 100);
+    });
+    document.getElementById('btnFullLightbox').addEventListener('click', () => {
+      markFirstInteraction();
+      trialTelemetry.chart_interaction_count += 1;
+      const src = document.getElementById('triageTargetImg').src;
+      if (src) {
+        document.getElementById('modalTargetImg').src = src;
+        document.getElementById('matrixModal').style.display = 'flex';
+      }
+    });
+    document.getElementById('btnToggleRefTable').addEventListener('click', function () {
+      markFirstInteraction();
+      trialTelemetry.chart_interaction_count += 1;
+      const box = document.getElementById('refTableContainer');
+      const isHidden = box.style.display === 'none';
+      if (isHidden) trialTelemetry.playbook_opened_count += 1;
+      box.style.display = isHidden ? 'block' : 'none';
+      this.textContent = isHidden ? 'Hide Playbook' : 'Show Playbook';
+    });
+
+    // Save & lock triage decision with all 14 core evaluation variables
+    document.getElementById('btnSaveTriage').addEventListener('click', () => {
+      if (!activeTrialContext) return;
+      const decision = document.querySelector('input[name="decision"]:checked')?.value;
+      const primaryCue = document.getElementById('primaryCue').value;
+      const secondaryCues = Array.from(document.querySelectorAll('input[name="secondaryCue"]:checked')).map(cb => cb.value);
+      const scenHyp = document.getElementById('scenarioHypothesis').value;
+      const confSkip = document.getElementById('confPreferNot').checked;
+      const confidencePct = confSkip ? 'prefer_not_to_answer' : document.getElementById('confidenceRange').value;
+      const helpfulness = document.querySelector('input[name="helpfulness"]:checked')?.value;
+
+      if (!decision || !primaryCue || !scenHyp || !helpfulness) {
+        document.getElementById('triageValidationMsg').style.display = 'block';
+        return;
+      }
+
+      flushChartDwell();
+      updateScrollDepth();
+
+      const submitTs = performance.now();
+      const totalTriageSec = Number(((submitTs - trialTelemetry.case_load_ts) / 1000).toFixed(3));
+      const ttfiSec = trialTelemetry.first_interaction_ts !== null
+        ? Number(((trialTelemetry.first_interaction_ts - trialTelemetry.case_load_ts) / 1000).toFixed(3))
+        : totalTriageSec;
+      const dwellSec = Number((trialTelemetry.chart_dwell_ms / 1000).toFixed(3));
+
+      const confidence5Pt = confSkip
+        ? 'prefer_not_to_answer'
+        : Math.min(5, Math.max(1, Math.floor(Number(confidencePct) / 20) + (Number(confidencePct) === 100 ? 0 : 1)));
+
+      const citedCombined = [primaryCue, ...secondaryCues].filter(Boolean).join(';');
+
+      const { cohortId, slot, trial } = activeTrialContext;
+      const info = resolveParticipantAssignment(document.getElementById('participantIdSelect').value);
+      const key = `${cohortId}__${slot.cert_id}__${trial.trial_id}`;
+
+      triageResponses[key] = {
+        participant_id: info ? info.compositeId : 'UNSPECIFIED',
+        global_participant_num: info ? info.globalId : '',
+        within_cohort_slot: info ? info.withinCohortSlot : '',
+        participant_role: info ? info.roleCode : '',
+        cohort: cohortId,
+
+        design_condition: slot.design === 'A' ? 'Design_A' : 'Design_B',
+
+        case_id: trial.trial_id,
+        trial_order: trialTelemetry.trial_order,
+        cert_id: trial.cert_id,
+        date: trial.date,
+        ground_truth_scenario: trial.scenario,
+        ground_truth_type: trial.alert_type,
+        anomaly_score: trial.anomaly_score,
+        threshold: trial.threshold,
+        shap_output_fx: trial.shap_output_value ?? '',
+        shap_expected_efx: trial.shap_expected_value ?? '',
+
+        time_to_first_interaction_sec: ttfiSec,
+        total_triage_time_sec: totalTriageSec,
+
+        triage_verdict: decision,
+        scenario_classification: scenHyp,
+        verdict_changes: trialTelemetry.verdict_changes,
+
+        scroll_depth_pct: trialTelemetry.max_scroll_depth_pct,
+        hover_or_click_count: trialTelemetry.chart_interaction_count,
+        dwell_time_on_chart_sec: dwellSec,
+        playbook_opened_count: trialTelemetry.playbook_opened_count,
+
+        primary_indicator: primaryCue,
+        secondary_indicators: secondaryCues.join(';'),
+        cited_top_features: citedCombined,
+
+        decision_confidence_pct: confidencePct,
+        decision_confidence_5pt: confidence5Pt,
+        explanation_helpfulness: helpfulness,
+
+        timestamp_iso: new Date().toISOString()
+      };
+
+      activeTrialContext = null;
+      document.getElementById('loggedCount').textContent = Object.keys(triageResponses).length;
+      document.getElementById('triageModal').style.display = 'none';
+      renderAllCohorts();
+    });
+
+    document.getElementById('btnExportSession').addEventListener('click', () => {
+      const rows = Object.values(triageResponses);
+      if (!rows.length) {
+        alert('No alert triage decisions recorded yet.');
+        return;
+      }
+      const headers = Object.keys(rows[0]);
+      const csv = [
+        headers.join(','),
+        ...rows.map(r => headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const info = resolveParticipantAssignment(document.getElementById('participantIdSelect').value);
+      a.href = url;
+      a.download = `${info ? info.compositeId : 'participant'}_14var_triage_results.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('participantIdSelect').addEventListener('change', function () {
+      const info = resolveParticipantAssignment(this.value);
+      syncAssignmentAndSurvey();
+      if (info) {
+        if (unlockedCohortId && unlockedCohortId !== info.cohortId) {
+          unlockedCohortId = '';
+          showOnlyCohort('');
+          syncAssignmentAndSurvey();
+        }
+        triggerCohortUnlockFlow(info.cohortId);
+      }
+    });
+
+    document.getElementById('btnUnlockAssignedCohort').addEventListener('click', () => {
+      const info = resolveParticipantAssignment(document.getElementById('participantIdSelect').value);
+      if (info) triggerCohortUnlockFlow(info.cohortId);
+    });
+
+    document.getElementById('btnDynamicSurvey').addEventListener('click', function (e) {
+      syncAssignmentAndSurvey();
+      const info = resolveParticipantAssignment(document.getElementById('participantIdSelect').value);
+      if (!info) {
+        e.preventDefault();
+        alert('Please select your assigned Participant ID (P01–P40) in Step 1 first.');
+        document.getElementById('participantIdSelect').focus();
+        return;
+      }
+      const cohortSeq = getCohortTrialSequence(info.cohortId);
+      const completedInCohort = cohortSeq.filter(x => x.isDone).length;
+      if (unlockedCohortId !== info.cohortId || completedInCohort < cohortSeq.length) {
+        e.preventDefault();
+        alert(`Please complete all ${cohortSeq.length} user assessments from left to right before opening the exit survey (${completedInCohort}/${cohortSeq.length} completed).`);
+      }
+    });
+
+    const pModal = document.getElementById('passkeyModal');
+    const pField = document.getElementById('passkeyField');
+    const pCancel = document.getElementById('passkeyCancelBtn');
+    const pSubmit = document.getElementById('passkeySubmitBtn');
+
+    function verifyPasskey() {
+      const inputKey = pField.value.trim();
+      const correctKey = passkeyRegistry[pendingCohortId];
+
+      if (inputKey === correctKey) {
+        unlockedCohortId = pendingCohortId;
+        pModal.style.display = 'none';
+        showOnlyCohort(unlockedCohortId);
+        syncAssignmentAndSurvey();
+      } else {
+        pField.classList.remove('error-shake');
+        void pField.offsetWidth;
+        pField.classList.add('error-shake');
+        pField.value = '';
+        pField.focus();
+      }
+    }
+
+    pSubmit.addEventListener('click', verifyPasskey);
+    pField.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyPasskey(); });
+    pCancel.addEventListener('click', () => {
+      pModal.style.display = 'none';
+      pendingCohortId = '';
+    });
+
+    document.getElementById('modalClose').addEventListener('click', () => {
+      document.getElementById('matrixModal').style.display = 'none';
+      document.getElementById('modalTargetImg').src = '';
+    });
+    document.getElementById('matrixModal').addEventListener('click', (e) => {
+      if (e.target.id === 'matrixModal') {
+        e.currentTarget.style.display = 'none';
+        document.getElementById('modalTargetImg').src = '';
+      }
+    });
+    document.getElementById('triageClose').addEventListener('click', () => {
+      flushChartDwell();
+      activeTrialContext = null;
+      document.getElementById('triageModal').style.display = 'none';
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      populateParticipantDropdown();
+      initManifest();
+      syncAssignmentAndSurvey();
+    });
+  </script>
+</body>
+</html>
