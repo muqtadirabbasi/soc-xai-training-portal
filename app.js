@@ -161,11 +161,113 @@ async function loadManifest() {
       web_beeswarm: `./data/beeswarms/beeswarm_${t.scenario}_${t.cert_id}.png`
     }));
     filteredTrials = [...allTrials];
+    populateDateJumpDropdown();
   } catch (err) {
     alert(
       "Could not load ./data/testing_manifest.json. Ensure testing_manifest.json, beeswarms/, and testing/ folders are placed inside /data/."
     );
     console.error(err);
+  }
+}
+
+function populateDateJumpDropdown() {
+  const sel = document.getElementById("dateJumpSelect");
+  if (!filteredTrials.length) {
+    sel.innerHTML = `<option value="">No matching days</option>`;
+    return;
+  }
+  sel.innerHTML = filteredTrials
+    .map(
+      (t, idx) =>
+        `<option value="${idx}">${t.date} [${t.scenario} | ${t.alert_type} | ${Number(t.anomaly_score).toFixed(4)}]</option>`
+    )
+    .join("");
+}
+
+function applyFilters() {
+  const scenVal = document.getElementById("scenarioFilter").value;
+  const outVal = document.getElementById("outcomeFilter").value;
+
+  filteredTrials = allTrials.filter((t) => {
+    const matchScen = scenVal === "ALL" || t.scenario === scenVal;
+    let matchOut = true;
+    if (outVal === "FLAGGED") matchOut = t.alert_type === "TP" || t.alert_type === "FP";
+    else if (outVal === "THREATS") matchOut = t.alert_type === "TP" || t.alert_type === "FN";
+    else if (outVal !== "ALL") matchOut = t.alert_type === outVal;
+    return matchScen && matchOut;
+  });
+
+  currentIndex = 0;
+  populateDateJumpDropdown();
+
+  if (!filteredTrials.length) {
+    alert(`No days matched User/Scenario='${scenVal}' and Day Filter='${outVal}'.`);
+    return;
+  }
+  renderTrial();
+}
+
+function renderUserTimeline(activeTrial) {
+  const container = document.getElementById("timelineContainer");
+  const userDays = allTrials
+    .filter((t) => t.cert_id === activeTrial.cert_id)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (!userDays.length) return;
+  document.getElementById("timelineTitle").textContent =
+    `Full Timeline: ${activeTrial.scenario} (${activeTrial.cert_id}) — ${userDays.length} Total Test Days (Click Any Dot to Inspect Day)`;
+
+  const width = Math.max(920, userDays.length * 4.2);
+  const height = 135;
+  const pad = 22;
+  const thresh = Number(activeTrial.threshold);
+  const maxScore = Math.max(thresh * 1.35, ...userDays.map((d) => Number(d.anomaly_score)));
+
+  const xScale = (i) => pad + (i / Math.max(userDays.length - 1, 1)) * (width - 2 * pad);
+  const yScale = (s) => height - pad - (s / (maxScore || 1)) * (height - 2 * pad);
+
+  const linePoints = userDays
+    .map((d, i) => `${xScale(i).toFixed(1)},${yScale(Number(d.anomaly_score)).toFixed(1)}`)
+    .join(" ");
+  const threshY = yScale(thresh).toFixed(1);
+
+  const circles = userDays
+    .map((d, i) => {
+      const cx = xScale(i).toFixed(1);
+      const cy = yScale(Number(d.anomaly_score)).toFixed(1);
+      const isSelected = d.trial_id === activeTrial.trial_id;
+      let fill = "#3b82f6";
+      if (d.alert_type === "TP" || d.alert_type === "FN") fill = "#ef4444";
+      else if (d.alert_type === "FP") fill = "#f59e0b";
+
+      const r = isSelected ? 6 : d.alert_type === "TN" ? 2.6 : 4.5;
+      const stroke = isSelected ? 'stroke="#ffffff" stroke-width="2"' : "";
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" ${stroke} style="cursor:pointer"
+                onclick="jumpToTrialId('${d.trial_id}')">
+                <title>${d.date} (${d.day_of_week}) | ${d.alert_type} | Score: ${Number(d.anomaly_score).toFixed(5)}</title>
+              </circle>`;
+    })
+    .join("");
+
+  container.innerHTML = `
+    <svg width="${width}" height="${height}" style="background:#0f172a; border-radius:6px; display:block;">
+      <line x1="${pad}" y1="${threshY}" x2="${width - pad}" y2="${threshY}" stroke="#10b981" stroke-dasharray="5,4" stroke-width="1.5" />
+      <polyline fill="none" stroke="#64748b" stroke-width="1.2" points="${linePoints}" />
+      ${circles}
+    </svg>
+  `;
+}
+
+function jumpToTrialId(trialId) {
+  let idx = filteredTrials.findIndex((t) => t.trial_id === trialId);
+  if (idx === -1) {
+    document.getElementById("outcomeFilter").value = "ALL";
+    applyFilters();
+    idx = filteredTrials.findIndex((t) => t.trial_id === trialId);
+  }
+  if (idx >= 0) {
+    currentIndex = idx;
+    renderTrial();
   }
 }
 
@@ -204,6 +306,7 @@ function renderTrial() {
   beeswarmOpenedCount = 0;
   playbookTabClicks = 0;
 
+  document.getElementById("dateJumpSelect").value = String(currentIndex);
   document.getElementById("progressText").textContent = `${currentIndex + 1} / ${filteredTrials.length}`;
   document.getElementById("trialIdText").textContent = trial.trial_id;
   document.getElementById("userText").textContent = `${trial.scenario} (${trial.cert_id})`;
@@ -216,6 +319,8 @@ function renderTrial() {
   document.getElementById("imgBeeswarm").src = trial.web_beeswarm;
   document.getElementById("beeswarmTitle").textContent =
     `Global SHAP Beeswarm — Scenario ${trial.scenario} (${trial.cert_id}) Across All Test Days`;
+
+  renderUserTimeline(trial);
 
   // Reset form inputs
   document.querySelectorAll('input[name="decision"]').forEach((r) => (r.checked = false));
@@ -322,7 +427,7 @@ function submitDecision() {
       <strong>Calibration Mismatch &mdash; Ground Truth is ${actualLabel} (${trial.scenario})</strong><br/>
       <strong>Detector Outcome Context:</strong> ${OUTCOME_DESCRIPTIONS[trial.alert_type] || trial.alert_type}<br/>
       <strong>Scenario Signature:</strong> ${scenGuide}<br/>
-      <strong>Tip:</strong> Switch between the scenario tabs above to compare primary malicious indicators against secondary workload/timing cues.
+      <strong>Tip:</strong> Switch between the scenario tabs below to compare primary malicious indicators against secondary workload/timing cues.
     `;
   }
 
@@ -389,16 +494,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("designSelect").addEventListener("change", updateLayoutMode);
+  document.getElementById("scenarioFilter").addEventListener("change", applyFilters);
+  document.getElementById("outcomeFilter").addEventListener("change", applyFilters);
 
-  document.getElementById("scenarioFilter").addEventListener("change", (e) => {
-    const val = e.target.value;
-    filteredTrials = val === "ALL" ? [...allTrials] : allTrials.filter((t) => t.scenario === val);
-    currentIndex = 0;
-    if (!filteredTrials.length) {
-      alert(`No cases found in testing_manifest.json for scenario filter: ${val}`);
-      return;
+  document.getElementById("dateJumpSelect").addEventListener("change", (e) => {
+    const idx = Number(e.target.value);
+    if (!Number.isNaN(idx) && idx >= 0 && idx < filteredTrials.length) {
+      currentIndex = idx;
+      renderTrial();
     }
-    renderTrial();
   });
 
   document.getElementById("toggleBeeswarmBtn").addEventListener("click", (e) => {
@@ -426,7 +530,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       currentIndex++;
       renderTrial();
     } else {
-      alert("You have reached the end of the selected training cases. Click 'Export Session Log (CSV)' to save your results.");
+      alert("You have reached the end of the selected cases. Click 'Export CSV' to save your session log.");
     }
   });
 
