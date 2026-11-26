@@ -282,39 +282,44 @@
         </div>
       </div>
 
-      <!-- In-Workspace Interactive Scenario & Behavioral Indicator Reference -->
+      <!-- In-Workspace Interactive Scenario & Behavioral Indicator Reference (Hidden by Default) -->
       <section class="card inline-playbook">
-        <div class="playbook-header">
+        <div class="playbook-header" style="margin-bottom: 0;">
           <div>
-            <h3>In-Triage Scenario & Behavioral Indicator Reference</h3>
-            <span class="muted">Click a tab below to inspect full scenario descriptions, primary drivers, and secondary indicators while triaging.</span>
+            <h3>In-Triage Scenario &amp; Behavioral Indicator Reference</h3>
+            <span class="muted">Collapsed by default &mdash; click to inspect full scenario descriptions, primary drivers, and secondary indicators.</span>
           </div>
-          <button id="toggleFullMatrixBtn" class="btn small">View All 6 Side-by-Side</button>
+          <div class="action-row">
+            <button id="toggleInlinePlaybookBtn" class="btn secondary">Show Scenario Reference</button>
+            <button id="toggleFullMatrixBtn" class="btn small hidden">View All 6 Side-by-Side</button>
+          </div>
         </div>
 
-        <div class="tab-bar" role="tablist">
-          <button class="tab-btn active" data-tab="S1">Scenario 1: WikiLeaks</button>
-          <button class="tab-btn" data-tab="S2">Scenario 2: IP Theft</button>
-          <button class="tab-btn" data-tab="S3">Scenario 3: Keylogger / Sabotage</button>
-          <button class="tab-btn" data-tab="S4">Scenario 4: Lateral &amp; Home Email</button>
-          <button class="tab-btn" data-tab="MIXED">Mixed Mode</button>
-          <button class="tab-btn" data-tab="BENIGN">Benign Anomaly</button>
-        </div>
+        <div id="inlinePlaybookBody" class="hidden" style="margin-top: 12px;">
+          <div class="tab-bar" role="tablist">
+            <button class="tab-btn active" data-tab="S1">Scenario 1: WikiLeaks</button>
+            <button class="tab-btn" data-tab="S2">Scenario 2: IP Theft</button>
+            <button class="tab-btn" data-tab="S3">Scenario 3: Keylogger / Sabotage</button>
+            <button class="tab-btn" data-tab="S4">Scenario 4: Lateral &amp; Home Email</button>
+            <button class="tab-btn" data-tab="MIXED">Mixed Mode</button>
+            <button class="tab-btn" data-tab="BENIGN">Benign Anomaly</button>
+          </div>
 
-        <div id="tabDetailBox" class="tab-detail-box"></div>
+          <div id="tabDetailBox" class="tab-detail-box"></div>
 
-        <div id="fullMatrixBox" class="table-scroll hidden" style="margin-top: 12px;">
-          <table class="guide-table">
-            <thead>
-              <tr>
-                <th>Category / Scenario</th>
-                <th>Full Behavioral Description</th>
-                <th>Primary Indicators</th>
-                <th>Secondary Indicators</th>
-              </tr>
-            </thead>
-            <tbody id="fullMatrixBody"></tbody>
-          </table>
+          <div id="fullMatrixBox" class="table-scroll hidden" style="margin-top: 12px;">
+            <table class="guide-table">
+              <thead>
+                <tr>
+                  <th>Category / Scenario</th>
+                  <th>Full Behavioral Description</th>
+                  <th>Primary Indicators</th>
+                  <th>Secondary Indicators</th>
+                </tr>
+              </thead>
+              <tbody id="fullMatrixBody"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
